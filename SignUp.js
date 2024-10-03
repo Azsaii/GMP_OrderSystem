@@ -27,6 +27,7 @@ const Input = styled.TextInput`
   margin-bottom: 12px;
 `;
 
+// 회원가입 화면
 const SignUp = ({ navigation }) => {
     const [nickname, setNickname] = useState('');
     const [email, setEmail] = useState('');

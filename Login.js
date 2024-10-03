@@ -28,7 +28,8 @@ const Input = styled.TextInput`
   margin-bottom: 12px;
 `;
 
-const Login = ({ navigation }) => {  // navigation prop 추가
+// 로그인 화면
+const Login = ({ navigation }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const dispatch = useDispatch();
