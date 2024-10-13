@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "orderSystem",
-    "slug": "orderSystem",
+    "name": "Kiosk_with_menu",
+    "slug": "Kiosk_with_menu",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
