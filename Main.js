@@ -38,7 +38,12 @@ const Main = () => {
     <Container>
       <Title>메인 화면</Title>
       {isLoggedIn ? (
-        <Button title="로그아웃" onPress={handleLogout} /> // 로그인 상태일 때 로그아웃 버튼 표시
+        <>
+          <Button title="로그아웃" onPress={handleLogout} />
+
+
+          <Button title="메뉴 고르기" onPress={() => navigation.navigate('Home')} />
+        </>
       ) : (
         <Button title="로그인" onPress={() => navigation.navigate('Login')} /> // 로그인 상태가 아닐 때 로그인 버튼 표시
       )}
