@@ -35,10 +35,10 @@ import store from './state';
 import Main from './Main';
 import Login from './Login';
 import SignUp from './SignUp';
-import MenuTab from './geonu/MenuTab';
-import CartScreen from './geonu/CartScreen';
-import DrinkDetailScreen from './geonu/DrinkDetailScreen';
-import DessertDetailScreen from './geonu/DessertDetailScreen';
+import MenuTab from './MenuOrder/MenuTab';
+import CartScreen from './MenuOrder/CartScreen';
+import DrinkDetailScreen from './MenuOrder/DrinkDetailScreen';
+import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { StyleSheet } from 'react-native';
 
