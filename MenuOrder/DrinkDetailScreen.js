@@ -13,7 +13,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
   const handleAddToCart = () => {
     addToCart({
       name: item.name,
-      image: item.image,
+      image: item.image_url,
       temperature,
       size,
       extraShot,
@@ -26,7 +26,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
 
   return (
     <SafeAreaView style={styles.detailContainer}>
-      <Image source={{ uri: item.image }} style={styles.menuImage} />
+      <Image source={{ uri: item.image_url }} style={styles.menuImage} />
       <Text style={styles.detailText}>{item.name}</Text>
       <Text style={styles.detailDescription}>{item.description}</Text>
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }} keyboardShouldPersistTaps="handled">

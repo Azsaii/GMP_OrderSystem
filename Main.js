@@ -40,8 +40,6 @@ const Main = () => {
       {isLoggedIn ? (
         <>
           <Button title="로그아웃" onPress={handleLogout} />
-
-
           <Button title="메뉴 고르기" onPress={() => navigation.navigate('Home')} />
         </>
       ) : (

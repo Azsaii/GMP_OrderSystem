@@ -20,6 +20,7 @@ const CartScreen = ({ cartItems, navigation, clearCart }) => {
                     <Text>사이즈: {item.size}</Text>
                     <Text>샷 추가: {item.extraShot ? '예' : '아니요'}</Text>
                     <Text>시럽 추가: {item.syrup ? '예' : '아니요'}</Text>
+                    <Text>수량: {item.quantity}</Text>
                   </>
                 ) : (
                   <>
