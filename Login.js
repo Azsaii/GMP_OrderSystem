@@ -1,8 +1,7 @@
-// Login.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button, Alert } from 'react-native';
 import styled from 'styled-components/native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { auth } from './firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { setLoggedIn, setUserEmail, setUserName } from './state';
@@ -30,47 +29,47 @@ const Input = styled.TextInput`
 
 // 로그인 화면
 const Login = ({ navigation }) => {
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const dispatch = useDispatch();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
 
-    const handleLogin = async () => {
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+  const handleLogin = async () => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+      const user = userCredential.user;
 
-            // 로그인 성공 시 Redux 상태 업데이트
-            dispatch(setLoggedIn(true));
-            dispatch(setUserEmail(user.email));
-            dispatch(setUserName(user.displayName || ''));
+      // 로그인 성공 시 Redux 상태 업데이트
+      dispatch(setLoggedIn(true));
+      dispatch(setUserEmail(user.email));
+      dispatch(setUserName(user.displayName || ''));
 
-            console.log('로그인 성공:', user);
-            navigation.navigate('Main');
-        } catch (error) {
-            console.error('로그인 실패:', error);
-            Alert.alert('로그인 실패', error.message);
-        }
-    };
+      // 로그인 후 Home으로 이동
+      navigation.navigate('Home');
+    } catch (error) {
+      console.error('로그인 실패:', error);
+      Alert.alert('로그인 실패', error.message);
+    }
+  };
 
-    return (
-        <Container>
-            <Title>로그인 화면</Title>
-            <Input
-                placeholder="아이디 입력"
-                value={email}
-                onChangeText={setEmail}
-            />
-            <Input
-                placeholder="비밀번호 입력"
-                secureTextEntry
-                value={password}
-                onChangeText={setPassword}
-            />
-            <Button title="로그인" onPress={handleLogin} />
-            <Button title="회원가입" onPress={() => navigation.navigate('SignUp')} />
-        </Container>
-
-    );
+  return (
+    <Container>
+      <Title>로그인 화면</Title>
+      <Input placeholder="아이디 입력" value={email} onChangeText={setEmail} />
+      <Input
+        placeholder="비밀번호 입력"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      <Button title="로그인" onPress={handleLogin} />
+      <Button title="회원가입" onPress={() => navigation.navigate('SignUp')} />
+    </Container>
+  );
 };
 
 export default Login;
