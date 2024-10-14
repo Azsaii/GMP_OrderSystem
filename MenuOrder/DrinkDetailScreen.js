@@ -26,10 +26,11 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
 
   return (
     <SafeAreaView style={styles.detailContainer}>
-      <Image source={{ uri: item.image_url }} style={styles.menuImage} />
-      <Text style={styles.detailText}>{item.name}</Text>
-      <Text style={styles.detailDescription}>{item.description}</Text>
       <ScrollView contentContainerStyle={{ paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
+        <Image source={{ uri: item.image_url }} style={styles.menuImage} />
+        <Text style={styles.detailText}>{item.name}</Text>
+        <Text style={styles.detailDescription}>{item.description}</Text>
+
         {/* 온도 선택 */}
         <Text>온도 선택:</Text>
         <RadioButton.Group onValueChange={setTemperature} value={temperature}>
