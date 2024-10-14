@@ -1,3 +1,3 @@
 # GMP_OrderSystem
 
-사용자 앱입니다.
+사용자 앱
