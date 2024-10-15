@@ -31,7 +31,10 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
 
   return (
     <SafeAreaView style={styles.detailContainer}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
+      <ScrollView 
+        contentContainerStyle={{ paddingBottom: 80 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
         <Image source={{ uri: item.image_url }} style={styles.menuImage} />
         <Text style={styles.detailText}>{item.name}</Text>
         <Text style={styles.detailDescription}>{item.description}</Text>

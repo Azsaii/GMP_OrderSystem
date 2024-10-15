@@ -31,7 +31,10 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
 
   return (
     <SafeAreaView style={styles.detailContainer}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 80 }} keyboardShouldPersistTaps="handled">
+      <ScrollView 
+        contentContainerStyle={{ paddingBottom: 80 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
         <Image source={{ uri: item.image_url }} style={styles.menuImage} />
         <Text style={styles.detailText}>{item.name}</Text>
         <Text style={styles.detailDescription}>{item.description}</Text>
@@ -124,8 +127,8 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
     </SafeAreaView>
   );
 };
-
-// 스타일 정의
+  
+  // 스타일 정의
 const styles = StyleSheet.create({
   detailContainer: {
     flex: 1,
@@ -187,5 +190,5 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
 });
-
-export default DrinkDetailScreen;
+  
+  export default DrinkDetailScreen;
