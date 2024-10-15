@@ -3,6 +3,7 @@ import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 're
 import { collection, getDocs, query, where } from 'firebase/firestore'; 
 import { firestore, auth } from '../firebaseConfig'; // Firebase 설정 파일
 import { onAuthStateChanged } from 'firebase/auth';
+import { format } from 'date-fns'; // 날짜 형식을 위한 라이브러리
 
 export default function UserScreen() {
   const [orderDetails, setOrderDetails] = useState([]);
@@ -23,22 +24,42 @@ export default function UserScreen() {
     return () => unsubscribe();
   }, []);
 
-  // Firestore에서 주문 데이터 가져오기
+  // Firestore에서 일주일 간의 주문 데이터 가져오기
   const fetchOrderData = async () => {
     if (!userId) return;
 
     try {
-      // Firestore에서 customerId와 로그인한 사용자의 UID가 일치하는 주문 가져오기
-      const ordersCollectionRef = collection(firestore, 'orders', '241014', 'orders');
-      const q = query(ordersCollectionRef, where('customerId', '==', userId));
-      const ordersSnapshot = await getDocs(q);
+      const today = new Date();
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(today.getDate() - 7); // 오늘로부터 7일 전
 
-      const ordersData = ordersSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
+      // 오늘부터 일주일간의 날짜 리스트 생성 (YYMMDD 형식)
+      const dateStrings = [];
+      for (let d = oneWeekAgo; d <= today; d.setDate(d.getDate() + 1)) {
+        const formattedDate = format(d, 'yyMMdd'); // YYMMDD 형식으로 변환
+        dateStrings.push(formattedDate);
+      }
 
-      setOrderDetails(ordersData);
+      let allOrders = [];
+
+      // 각 날짜별로 Firestore에서 주문 데이터를 가져오기
+      for (const dateString of dateStrings) {
+        const ordersCollectionRef = collection(firestore, 'orders', dateString, 'orders');
+        const q = query(ordersCollectionRef, where('customerId', '==', userId)); // customerId 필터링
+        const ordersSnapshot = await getDocs(q);
+
+        const ordersData = ordersSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        allOrders = [...allOrders, ...ordersData];
+      }
+
+      // 최신순으로 정렬 (createdAt 필드 기준)
+      allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      setOrderDetails(allOrders);
     } catch (error) {
       console.error('주문 데이터를 가져오는 중 오류 발생:', error);
       Alert.alert('오류', '주문 데이터를 가져오는 중 오류가 발생했습니다.');
