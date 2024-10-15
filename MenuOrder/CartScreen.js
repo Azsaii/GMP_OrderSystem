@@ -34,9 +34,11 @@ const CartScreen = ({ cartItems, navigation, clearCart }) => {
       <TouchableOpacity 
         style={styles.orderButton} 
         onPress={() => {
-          alert('주문이 완료되었습니다!');
-          clearCart();
-          navigation.goBack();
+          if (cartItems.length === 0) {
+            alert('장바구니에 담긴 상품이 없습니다.');
+            return;
+          }
+          navigation.navigate('Checkout', { cartItems }); // CheckoutScreen으로 이동
         }}
       >
         <Text style={styles.orderButtonText}>주문하기</Text>

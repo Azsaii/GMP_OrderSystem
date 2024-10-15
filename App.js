@@ -1,6 +1,7 @@
 // App.js
+
 import React, { useState } from 'react';
-import { Provider, useSelector, useDispatch } from 'react-redux';
+import { Provider as ReduxProvider, useSelector, useDispatch } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import store, { setLoggedIn } from './state';
@@ -10,10 +11,13 @@ import MenuTab from './MenuOrder/MenuTab';
 import CartScreen from './MenuOrder/CartScreen';
 import DrinkDetailScreen from './MenuOrder/DrinkDetailScreen';
 import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
+import CheckoutScreen from './CheckoutOrder/components/CheckoutScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Button } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
+import { UserProvider } from './CheckoutOrder/contexts/UserContext';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
@@ -76,7 +80,19 @@ const AppNavigator = () => {
       </Stack.Screen>
       <Stack.Screen name="Cart">
         {(props) => (
-          <CartScreen {...props} cartItems={cartItems} clearCart={clearCart} />
+          <CartScreen
+            {...props}
+            cartItems={cartItems}
+            clearCart={clearCart}
+          />
+        )}
+      </Stack.Screen>
+      <Stack.Screen name="Checkout">
+        {(props) => (
+          <CheckoutScreen
+            {...props}
+            onClearCart={clearCart} // clearCart 함수 전달
+          />
         )}
       </Stack.Screen>
       <Stack.Screen name="Login" component={Login} />
@@ -87,11 +103,17 @@ const AppNavigator = () => {
 
 const App = () => {
   return (
-    <Provider store={store}>
-      <NavigationContainer>
-        <AppNavigator />
-      </NavigationContainer>
-    </Provider>
+    <ReduxProvider store={store}>
+      {/* UserProvider 추가 */}
+      <UserProvider>
+        {/* PaperProvider 추가 */}
+        <PaperProvider>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </PaperProvider>
+      </UserProvider>
+    </ReduxProvider>
   );
 };
 
