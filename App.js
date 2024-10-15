@@ -12,8 +12,9 @@ import CartScreen from './MenuOrder/CartScreen';
 import DrinkDetailScreen from './MenuOrder/DrinkDetailScreen';
 import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
 import CheckoutScreen from './CheckoutOrder/components/CheckoutScreen';
+import UserScreen from './OrderMenu/UserScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Button } from 'react-native';
+import { Button, View, Text } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { UserProvider } from './CheckoutOrder/contexts/UserContext';
@@ -46,7 +47,7 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator initialRouteName="Home">
-      {/* 탭 화면 오른쪽에 로그인 또는 로그아웃 버튼 추가 */}
+      {/* 홈 화면 설정 */}
       <Stack.Screen
         name="Home"
         options={({ navigation }) => ({
@@ -69,13 +70,35 @@ const AppNavigator = () => {
             <Tab.Screen name="디저트">
               {(props) => <MenuTab {...props} category="dessert" />}
             </Tab.Screen>
+            {/* 주문 내역 탭 추가 */}
+            <Tab.Screen
+              name="주문 내역"
+              options={{ tabBarLabel: '주문 내역' }}
+            >
+              {(props) => (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                  <Button
+                    title="주문 확인"
+                    onPress={() => props.navigation.navigate('UserScreen')}
+                  />
+                </View>
+              )}
+            </Tab.Screen>
           </Tab.Navigator>
         )}
       </Stack.Screen>
-      <Stack.Screen name="DrinkDetail" options={{ title: '음료 상세보기' }}>
+
+      {/* 상세 화면들 */}
+      <Stack.Screen
+        name="DrinkDetail"
+        options={{ title: '음료 상세보기' }}
+      >
         {(props) => <DrinkDetailScreen {...props} addToCart={addToCart} />}
       </Stack.Screen>
-      <Stack.Screen name="DessertDetail" options={{ title: '디저트 상세보기' }}>
+      <Stack.Screen
+        name="DessertDetail"
+        options={{ title: '디저트 상세보기' }}
+      >
         {(props) => <DessertDetailScreen {...props} addToCart={addToCart} />}
       </Stack.Screen>
       <Stack.Screen name="Cart">
@@ -95,8 +118,17 @@ const AppNavigator = () => {
           />
         )}
       </Stack.Screen>
+
+      {/* 인증 화면들 */}
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="SignUp" component={SignUp} />
+
+      {/* UserScreen 추가 */}
+      <Stack.Screen
+        name="UserScreen"
+        component={UserScreen}
+        options={{ title: '주문 내역' }}
+      />
     </Stack.Navigator>
   );
 };
