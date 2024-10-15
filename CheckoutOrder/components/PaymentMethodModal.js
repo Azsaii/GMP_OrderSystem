@@ -1,5 +1,5 @@
 import React, { useState, useRef, useContext } from 'react';
-import { View, Platform, ToastAndroid } from 'react-native';
+import { View, Platform, ToastAndroid, Alert } from 'react-native';
 import {
   Dialog,
   Button,
@@ -56,9 +56,62 @@ const PaymentMethodModal = ({
     }
   };
 
+  // 숫자만 입력되었는지 확인하는 함수
+  const isNumeric = (str) => /^\d+$/.test(str);
+
+  // 유효기간 입력 시 자동으로 MM/YY 형식으로 포맷하는 함수
+  const handleExpiryDateChange = (value) => {
+    // 숫자만 입력
+    const formattedValue = value.replace(/[^0-9]/g, '').slice(0, 4);
+    
+    // 입력된 값이 2자리를 초과하면 MM/YY로 포맷
+    const formattedExpiry = 
+      formattedValue.length > 2 
+      ? `${formattedValue.slice(0, 2)}/${formattedValue.slice(2)}`
+      : formattedValue;
+    
+    setCardInfo({ ...cardInfo, expiryDate: formattedExpiry });
+  };
+
   // 결제 수단 등록 함수
   const registerPaymentMethod = async () => {
-    if (selectedPaymentType === 'Card' && validateCardRegistration()) {
+    if (selectedPaymentType === 'Card') {
+      // 카드 등록 유효성 검사
+      const { cardNumber, expiryDate, cvc, password, birthdate } = cardInfo;
+
+      // 카드번호 검사
+      for (let i = 0; i < cardNumber.length; i++) {
+        if (cardNumber[i].length !== 4 || !isNumeric(cardNumber[i])) {
+          showToast('카드번호는 숫자 16자리여야 합니다.');
+          return;
+        }
+      }
+
+      // 유효기간 검사
+      if (!/^\d{2}\/\d{2}$/.test(expiryDate)) {
+        showToast('유효기간 란에는 숫자만 입력해주세요. (MM/YY)');
+        return;
+      }
+
+      // CVC 검사
+      if (cvc.length !== 3 || !isNumeric(cvc)) {
+        showToast('CVC 란에는 숫자만 입력해주세요.');
+        return;
+      }
+
+      // 비밀번호 검사
+      if (password.length !== 2 || !isNumeric(password)) {
+        showToast('비밀번호 앞 두자리는 숫자만 입력해주세요.');
+        return;
+      }
+
+      // 생년월일 검사
+      if (birthdate.length !== 6 || !isNumeric(birthdate)) {
+        showToast('생년월일 란에는 숫자만 입력해주세요.');
+        return;
+      }
+
+      // 모든 유효성 검사를 통과하면 결제 수단 등록
       const newCardMethod = {
         id: 'p1',
         type: 'Card',
@@ -79,7 +132,23 @@ const PaymentMethodModal = ({
       addPaymentMethod(newCardMethod);
       setSelectedPaymentMethod(newCardMethod);
       setPaymentModalVisible(false);
-    } else if (selectedPaymentType === 'Account' && validateAccountRegistration()) {
+    } else if (selectedPaymentType === 'Account') {
+      // 계좌 등록 유효성 검사
+      const { accountNumber, password } = accountInfo;
+
+      // 계좌번호 검사
+      if (!isNumeric(accountNumber)) {
+        showToast('계좌번호 란에는 숫자만 입력해주세요.');
+        return;
+      }
+
+      // 비밀번호 검사
+      if (password.length !== 2 || !isNumeric(password)) {
+        showToast('비밀번호 앞 두자리는 숫자만 입력해주세요.');
+        return;
+      }
+
+      // 모든 유효성 검사를 통과하면 결제 수단 등록
       const newAccountMethod = {
         id: 'p2',
         type: 'Account',
@@ -133,40 +202,6 @@ const PaymentMethodModal = ({
     } catch (error) {
       console.error('결제 수단 저장 중 오류 발생:', error);
     }
-  };
-
-  // 카드 등록 유효성 검사 함수
-  const validateCardRegistration = () => {
-    const { cardNumber, expiryDate, cvc, password, birthdate, nickname } = cardInfo;
-    return (
-      cardNumber.every((number) => number.length === 4) &&
-      expiryDate.length === 5 &&
-      cvc.length === 3 &&
-      password.length === 2 &&
-      birthdate.length === 6 &&
-      nickname.length > 0
-    );
-  };
-
-  // 계좌 등록 유효성 검사 함수
-  const validateAccountRegistration = () => {
-    const { bankName, accountNumber, password, nickname } = accountInfo;
-    return (
-      bankName.length > 0 &&
-      accountNumber.length > 0 &&
-      password.length === 2 &&
-      nickname.length > 0
-    );
-  };
-
-  // 유효기간 입력 시 자동으로 MM/YY 형식으로 포맷하는 함수
-  const handleExpiryDateChange = (value) => {
-    const formattedValue = value.replace(/[^0-9]/g, '').slice(0, 4);
-    const formattedExpiry =
-      formattedValue.length > 2
-        ? `${formattedValue.slice(0, 2)}/${formattedValue.slice(2)}`
-        : formattedValue;
-    setCardInfo({ ...cardInfo, expiryDate: formattedExpiry });
   };
 
   return (
