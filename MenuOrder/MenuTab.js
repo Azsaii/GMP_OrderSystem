@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
       padding: 10,
     },
     menuItem: {
-      width: '48%', // 한 행에 메뉴 두개씩 출력npm
+      width: '48%',
       alignItems: 'center',
       marginBottom: 10,
     },
