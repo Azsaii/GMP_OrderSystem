@@ -1,7 +1,5 @@
-// CheckoutOrder/components/PaymentMethodModal.js
-
-import React, { useState, useContext } from 'react';
-import { View, Platform, Alert } from 'react-native';
+import React, { useState, useRef, useContext } from 'react';
+import { View, Platform, ToastAndroid } from 'react-native';
 import {
   Dialog,
   Button,
@@ -44,10 +42,10 @@ const PaymentMethodModal = ({
   const [bankMenuVisible, setBankMenuVisible] = useState(false);
 
   const refs = {
-    cardInput0: React.createRef(),
-    cardInput1: React.createRef(),
-    cardInput2: React.createRef(),
-    cardInput3: React.createRef(),
+    cardInput0: useRef(null),
+    cardInput1: useRef(null),
+    cardInput2: useRef(null),
+    cardInput3: useRef(null),
   };
 
   const showToast = (message) => {
@@ -61,9 +59,8 @@ const PaymentMethodModal = ({
   // 결제 수단 등록 함수
   const registerPaymentMethod = async () => {
     if (selectedPaymentType === 'Card' && validateCardRegistration()) {
-      const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`; // 고유한 ID 생성
       const newCardMethod = {
-        id: uniqueId, // 고유 ID 사용
+        id: 'p1',
         type: 'Card',
         name: cardInfo.nickname || '등록된 카드',
         details: {
@@ -83,9 +80,8 @@ const PaymentMethodModal = ({
       setSelectedPaymentMethod(newCardMethod);
       setPaymentModalVisible(false);
     } else if (selectedPaymentType === 'Account' && validateAccountRegistration()) {
-      const uniqueId = `${Date.now()}-${Math.floor(Math.random() * 1000)}`; // 고유한 ID 생성
       const newAccountMethod = {
-        id: uniqueId, // 고유 ID 사용
+        id: 'p2',
         type: 'Account',
         name: accountInfo.nickname || '등록된 계좌',
         details: {
@@ -191,7 +187,7 @@ const PaymentMethodModal = ({
                 <PaperTextInput
                   key={index}
                   ref={refs[`cardInput${index}`]}
-                  label={`카드 ${index + 1}`}
+                  label="카드"
                   value={cardInfo.cardNumber[index]}
                   onChangeText={(value) => {
                     const newCardNumber = [...cardInfo.cardNumber];
