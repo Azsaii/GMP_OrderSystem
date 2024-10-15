@@ -10,6 +10,7 @@ import MenuTab from './MenuOrder/MenuTab';
 import CartScreen from './MenuOrder/CartScreen';
 import DrinkDetailScreen from './MenuOrder/DrinkDetailScreen';
 import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
+import UserScreen from './OrderList/UserScreen'; // 주문 화면 임포트
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { Button } from 'react-native';
 import { auth } from './firebaseConfig';
@@ -65,6 +66,15 @@ const AppNavigator = () => {
             <Tab.Screen name="디저트">
               {(props) => <MenuTab {...props} category="dessert" />}
             </Tab.Screen>
+            {/* 주문 확인 화면으로 가는 버튼 추가 */}
+            <Tab.Screen name="주문 내역">
+              {(props) => (
+                <Button
+                  title="주문 확인"
+                  onPress={() => props.navigation.navigate('UserScreen')}
+                />
+              )}
+            </Tab.Screen>
           </Tab.Navigator>
         )}
       </Stack.Screen>
@@ -81,6 +91,8 @@ const AppNavigator = () => {
       </Stack.Screen>
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="SignUp" component={SignUp} />
+      {/* UserScreen 추가 */}
+      <Stack.Screen name="UserScreen" component={UserScreen} options={{ title: '주문 내역' }} />
     </Stack.Navigator>
   );
 };
