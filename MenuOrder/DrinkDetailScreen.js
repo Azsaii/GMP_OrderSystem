@@ -11,7 +11,11 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
   const [quantity, setQuantity] = useState(1); // 수량 상태 추가
 
   const handleAddToCart = () => {
+    // Firestore에서 가져온 price가 문자열이라서 숫자로 변환
+    const unitPrice = parseInt(item.price, 10) || 0;
+
     addToCart({
+      id: item.id,
       name: item.name,
       image: item.image_url,
       temperature,
@@ -19,6 +23,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       extraShot,
       syrup,
       quantity, // 수량 추가
+      unitPrice, // 가격 추가
     });
     alert('장바구니에 담았습니다!');
     navigation.goBack();
