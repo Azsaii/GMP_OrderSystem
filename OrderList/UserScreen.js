@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Button, Alert } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { collection, getDocs, query, where } from 'firebase/firestore'; 
 import { firestore, auth } from '../firebaseConfig'; // Firebase 설정 파일
 import { onAuthStateChanged } from 'firebase/auth';
@@ -9,6 +10,10 @@ export default function UserScreen() {
   const [orderDetails, setOrderDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
+  const [startDate, setStartDate] = useState(new Date()); // 시작 날짜
+  const [endDate, setEndDate] = useState(new Date()); // 종료 날짜
+  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
+  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
   // 로그인된 사용자 정보 가져오기
   useEffect(() => {
@@ -24,26 +29,19 @@ export default function UserScreen() {
     return () => unsubscribe();
   }, []);
 
-  // Firestore에서 일주일 간의 주문 데이터 가져오기
+  // Firestore에서 날짜 필터를 사용하여 주문 데이터 가져오기
   const fetchOrderData = async () => {
     if (!userId) return;
 
     try {
-      const today = new Date();
-      const oneWeekAgo = new Date();
-      oneWeekAgo.setDate(today.getDate() - 7); // 오늘로부터 7일 전
-
-      // 오늘부터 일주일간의 날짜 리스트 생성 (YYMMDD 형식)
-      const dateStrings = [];
-      for (let d = oneWeekAgo; d <= today; d.setDate(d.getDate() + 1)) {
-        const formattedDate = format(d, 'yyMMdd'); // YYMMDD 형식으로 변환
-        dateStrings.push(formattedDate);
-      }
+      const formattedStartDate = format(startDate, 'yyMMdd'); // YYMMDD 형식으로 변환
+      const formattedEndDate = format(endDate, 'yyMMdd'); // YYMMDD 형식으로 변환
 
       let allOrders = [];
 
-      // 각 날짜별로 Firestore에서 주문 데이터를 가져오기
-      for (const dateString of dateStrings) {
+      // 시작 날짜부터 종료 날짜까지 Firestore에서 주문 가져오기
+      for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+        const dateString = format(d, 'yyMMdd');
         const ordersCollectionRef = collection(firestore, 'orders', dateString, 'orders');
         const q = query(ordersCollectionRef, where('customerId', '==', userId)); // customerId 필터링
         const ordersSnapshot = await getDocs(q);
@@ -56,7 +54,7 @@ export default function UserScreen() {
         allOrders = [...allOrders, ...ordersData];
       }
 
-      // 최신순으로 정렬 (createdAt 필드 기준)
+      // 최신순으로 정렬
       allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
       setOrderDetails(allOrders);
@@ -73,7 +71,23 @@ export default function UserScreen() {
     if (userId) {
       fetchOrderData();
     }
-  }, [userId]);
+  }, [userId, startDate, endDate]); // 날짜가 변경될 때마다 새로 가져오기
+
+  // 시작 날짜 선택
+  const handleStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(false);
+    if (selectedDate) {
+      setStartDate(selectedDate);
+    }
+  };
+
+  // 종료 날짜 선택
+  const handleEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(false);
+    if (selectedDate) {
+      setEndDate(selectedDate);
+    }
+  };
 
   if (loading) {
     return (
@@ -94,6 +108,32 @@ export default function UserScreen() {
 
   return (
     <ScrollView style={styles.container}>
+      {/* 날짜 선택기 */}
+      <View style={styles.datePickerContainer}>
+        <Button title="시작 날짜 선택" onPress={() => setShowStartDatePicker(true)} />
+        {showStartDatePicker && (
+          <DateTimePicker
+            value={startDate}
+            mode="date"
+            display="default"
+            onChange={handleStartDateChange}
+          />
+        )}
+
+        <Button title="종료 날짜 선택" onPress={() => setShowEndDatePicker(true)} />
+        {showEndDatePicker && (
+          <DateTimePicker
+            value={endDate}
+            mode="date"
+            display="default"
+            onChange={handleEndDateChange}
+          />
+        )}
+
+        <Text>선택된 기간: {format(startDate, 'yyyy-MM-dd')} ~ {format(endDate, 'yyyy-MM-dd')}</Text>
+      </View>
+
+      {/* 주문 정보 섹션 */}
       <View style={styles.orderDetails}>
         {orderDetails.map((order) => (
           <View key={order.id} style={styles.orderItem}>
@@ -122,6 +162,9 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
+  },
+  datePickerContainer: {
+    marginBottom: 20,
   },
   orderDetails: {
     marginVertical: 20,
