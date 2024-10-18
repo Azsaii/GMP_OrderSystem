@@ -1,20 +1,38 @@
 import React from 'react';
 import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
 
-const CartScreen = ({ cartItems, navigation, clearCart }) => {
+// 장바구니 아이템을 그룹화하는 함수
+const groupCartItems = (cartItems) => {
+  const groupedItems = {};
+
+  cartItems.forEach(item => {
+    const key = `${item.name}-${item.temperature}-${item.size}-${item.extraShot}-${item.syrup}`;
+    if (groupedItems[key]) {
+      groupedItems[key].quantity += item.quantity; // 수량 합산
+    } else {
+      groupedItems[key] = { ...item }; // 새로 추가
+    }
+  });
+
+  return Object.values(groupedItems);
+};
+
+const CartScreen = ({ cartItems, navigation }) => {
+  const groupedCartItems = groupCartItems(cartItems); // 그룹화된 장바구니 아이템
+
   return (
     <SafeAreaView style={styles.cartContainer}>
       <Text style={styles.cartTitle}>장바구니</Text>
       <ScrollView>
-        {cartItems.length === 0 ? (
+        {groupedCartItems.length === 0 ? (
           <Text style={styles.emptyCart}>장바구니가 비어 있습니다.</Text>
         ) : (
-          cartItems.map((item, index) => (
+          groupedCartItems.map((item, index) => (
             <View key={index} style={styles.cartItem}>
               <Image source={{ uri: item.image }} style={styles.cartImage} />
               <View style={styles.cartDetails}>
                 <Text>{item.name}</Text>
-                {item.temperature? ( // 온도 옵션이 있으면 drink, 없으면 dessert로 표시
+                {item.temperature ? ( // 온도 옵션이 있으면 drink, 없으면 dessert로 표시
                   <>
                     <Text>온도: {item.temperature}</Text>
                     <Text>사이즈: {item.size}</Text>
@@ -34,11 +52,11 @@ const CartScreen = ({ cartItems, navigation, clearCart }) => {
       <TouchableOpacity 
         style={styles.orderButton} 
         onPress={() => {
-          if (cartItems.length === 0) {
+          if (groupedCartItems.length === 0) {
             alert('장바구니에 담긴 상품이 없습니다.');
             return;
           }
-          navigation.navigate('Checkout', { cartItems }); // CheckoutScreen으로 이동
+          navigation.navigate('Checkout', { cartItems: groupedCartItems }); // CheckoutScreen으로 이동
         }}
       >
         <Text style={styles.orderButtonText}>주문하기</Text>
