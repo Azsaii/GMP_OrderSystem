@@ -8,7 +8,6 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
   const [temperature, setTemperature] = useState('HOT');
   const [size, setSize] = useState('톨');
   const [extraShot, setExtraShot] = useState(false);
-  const [syrup, setSyrup] = useState(false);
   const [quantity, setQuantity] = useState(1); // 수량 상태 추가
 
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
@@ -35,7 +34,6 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       temperature,
       size,
       extraShot,
-      syrup,
       quantity, // 수량 추가
       unitPrice, // 가격 추가
     });
@@ -90,21 +88,6 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         {/* 샷 추가 */}
         <Text>샷 추가:</Text>
         <RadioButton.Group onValueChange={(value) => setExtraShot(value === '추가')} value={extraShot ? '추가' : '없음'}>
-          <View style={styles.radioGroup}>
-            <View style={styles.radioItem}>
-              <RadioButton value="없음" />
-              <Text>없음</Text>
-            </View>
-            <View style={styles.radioItem}>
-              <RadioButton value="추가" />
-              <Text>추가</Text>
-            </View>
-          </View>
-        </RadioButton.Group>
-
-        {/* 시럽 추가 */}
-        <Text>시럽 추가:</Text>
-        <RadioButton.Group onValueChange={(value) => setSyrup(value === '추가')} value={syrup ? '추가' : '없음'}>
           <View style={styles.radioGroup}>
             <View style={styles.radioItem}>
               <RadioButton value="없음" />

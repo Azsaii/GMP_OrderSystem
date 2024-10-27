@@ -7,7 +7,6 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
   const [temperature, setTemperature] = useState('HOT');
   const [size, setSize] = useState('톨');
   const [extraShot, setExtraShot] = useState(false);
-  const [syrup, setSyrup] = useState(false);
   const [quantity, setQuantity] = useState(1); // 수량 상태 추가
 
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
@@ -31,10 +30,6 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
       id: item.id,
       name: item.name,
       image: item.image_url,
-      temperature,
-      size,
-      extraShot,
-      syrup,
       quantity, // 수량 추가
       unitPrice, // 가격 추가
     });

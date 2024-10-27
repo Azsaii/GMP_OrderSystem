@@ -71,7 +71,7 @@ const AppNavigator = () => {
               {(props) => <MenuTab {...props} category="dessert" />}
             </Tab.Screen>
             {/* 주문 내역 탭 추가 */}
-            <Tab.Screen
+            {/* <Tab.Screen
               name="주문 내역"
               options={{ tabBarLabel: '주문 내역' }}
             >
@@ -83,7 +83,7 @@ const AppNavigator = () => {
                   />
                 </View>
               )}
-            </Tab.Screen>
+            </Tab.Screen> */}
           </Tab.Navigator>
         )}
       </Stack.Screen>

@@ -37,11 +37,13 @@ const CartScreen = ({ cartItems, navigation }) => {
                     <Text>온도: {item.temperature}</Text>
                     <Text>사이즈: {item.size}</Text>
                     <Text>샷 추가: {item.extraShot ? '예' : '아니요'}</Text>
-                    <Text>시럽 추가: {item.syrup ? '예' : '아니요'}</Text>
                     <Text>수량: {item.quantity}</Text>
+                    <Text>가격: {item.unitPrice * item.quantity}</Text>
                   </>
                 ) : (
                   <>
+                    <Text>수량: {item.quantity}</Text>
+                    <Text>가격: {item.unitPrice * item.quantity}</Text>
                   </>
                 )}
               </View>

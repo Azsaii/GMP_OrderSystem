@@ -63,9 +63,16 @@ const MenuTab = ({ navigation, category }) => {
           ))}
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.orderButton} onPress={handleCartNavigation}>
-        <Text style={styles.orderButtonText}>장바구니로 이동</Text>
-      </TouchableOpacity>
+      <View style={styles.RowContainer}>
+        <TouchableOpacity style={styles.orderButton} onPress={handleCartNavigation}>
+          <Text style={styles.orderButtonText}>장바구니</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.orderButton} onPress={() => {
+          navigation.navigate('UserScreen'); //주문 내역 화면으로 이동
+        }}>
+          <Text style={styles.orderButtonText}>주문내역</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -73,6 +80,12 @@ const MenuTab = ({ navigation, category }) => {
 // 스타일 정의
 const styles = StyleSheet.create({
     menuContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      padding: 10,
+    },
+    RowContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
@@ -97,7 +110,8 @@ const styles = StyleSheet.create({
       color: '#888',
     },
     orderButton: {
-      backgroundColor: '#007BFF',
+      backgroundColor: '#000000',
+      width: '43%',
       padding: 15,
       borderRadius: 5,
       alignItems: 'center',
