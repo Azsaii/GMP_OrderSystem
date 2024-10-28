@@ -1,7 +1,11 @@
 // App.js
 
 import React, { useState } from 'react';
-import { Provider as ReduxProvider, useSelector, useDispatch } from 'react-redux';
+import {
+  Provider as ReduxProvider,
+  useSelector,
+  useDispatch,
+} from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import store, { setLoggedIn } from './state';
@@ -71,12 +75,15 @@ const AppNavigator = () => {
               {(props) => <MenuTab {...props} category="dessert" />}
             </Tab.Screen>
             {/* 주문 내역 탭 추가 */}
-            <Tab.Screen
-              name="주문 내역"
-              options={{ tabBarLabel: '주문 내역' }}
-            >
+            <Tab.Screen name="주문 내역" options={{ tabBarLabel: '주문 내역' }}>
               {(props) => (
-                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <View
+                  style={{
+                    flex: 1,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                  }}
+                >
                   <Button
                     title="주문 확인"
                     onPress={() => props.navigation.navigate('UserScreen')}
@@ -89,25 +96,15 @@ const AppNavigator = () => {
       </Stack.Screen>
 
       {/* 상세 화면들 */}
-      <Stack.Screen
-        name="DrinkDetail"
-        options={{ title: '음료 상세보기' }}
-      >
+      <Stack.Screen name="DrinkDetail" options={{ title: '음료 상세보기' }}>
         {(props) => <DrinkDetailScreen {...props} addToCart={addToCart} />}
       </Stack.Screen>
-      <Stack.Screen
-        name="DessertDetail"
-        options={{ title: '디저트 상세보기' }}
-      >
+      <Stack.Screen name="DessertDetail" options={{ title: '디저트 상세보기' }}>
         {(props) => <DessertDetailScreen {...props} addToCart={addToCart} />}
       </Stack.Screen>
       <Stack.Screen name="Cart">
         {(props) => (
-          <CartScreen
-            {...props}
-            cartItems={cartItems}
-            clearCart={clearCart}
-          />
+          <CartScreen {...props} cartItems={cartItems} clearCart={clearCart} />
         )}
       </Stack.Screen>
       <Stack.Screen name="Checkout">
@@ -120,8 +117,16 @@ const AppNavigator = () => {
       </Stack.Screen>
 
       {/* 인증 화면들 */}
-      <Stack.Screen name="Login" component={Login} />
-      <Stack.Screen name="SignUp" component={SignUp} />
+      <Stack.Screen
+        name="Login"
+        component={Login}
+        options={{ title: '로그인' }}
+      />
+      <Stack.Screen
+        name="SignUp"
+        component={SignUp}
+        options={{ title: '회원 가입' }}
+      />
 
       {/* UserScreen 추가 */}
       <Stack.Screen
