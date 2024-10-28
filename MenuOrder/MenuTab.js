@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { firestore } from './../firebaseConfig'; // firebase.js 파일의 경로에 맞게 수정
 import { collection, getDocs } from 'firebase/firestore';
+import { useSelector } from 'react-redux'; // Redux의 useSelector 가져오기
 
 const MenuTab = ({ navigation, category }) => {
   const [menuItems, setMenuItems] = useState([]);
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
 
   useEffect(() => {
     const fetchMenuData = async () => {
@@ -23,6 +25,20 @@ const MenuTab = ({ navigation, category }) => {
 
     fetchMenuData();
   }, [category]);
+
+  const handleCartNavigation = () => {
+    if (isLoggedIn) {
+      navigation.navigate('Cart'); // 로그인 상태일 때 장바구니로 이동
+    } else {
+      Alert.alert(
+        '로그인 필요',
+        '로그인을 먼저 해주세요.',
+        [
+          { text: '확인', onPress: () => navigation.navigate('Login') } // 로그인 화면으로 이동
+        ]
+      );
+    }
+  };
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -47,17 +63,29 @@ const MenuTab = ({ navigation, category }) => {
           ))}
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.orderButton} onPress={() => navigation.navigate('Cart')}>
-        <Text style={styles.orderButtonText}>장바구니로 이동</Text>
-      </TouchableOpacity>
+      <View style={styles.RowContainer}>
+        <TouchableOpacity style={styles.orderButton} onPress={handleCartNavigation}>
+          <Text style={styles.orderButtonText}>장바구니</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.orderButton} onPress={() => {
+          navigation.navigate('UserScreen'); //주문 내역 화면으로 이동
+        }}>
+          <Text style={styles.orderButtonText}>주문내역</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
 
-
 // 스타일 정의
 const styles = StyleSheet.create({
     menuContainer: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      padding: 10,
+    },
+    RowContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
@@ -77,8 +105,13 @@ const styles = StyleSheet.create({
       textAlign: 'center',
       marginTop: 5,
     },
+    menuPrice: {
+      textAlign: 'center',
+      color: '#888',
+    },
     orderButton: {
-      backgroundColor: '#007BFF',
+      backgroundColor: '#000000',
+      width: '43%',
       padding: 15,
       borderRadius: 5,
       alignItems: 'center',
@@ -89,71 +122,6 @@ const styles = StyleSheet.create({
       fontSize: 16,
       fontWeight: 'bold',
     },
-    detailContainer: {
-      flex: 1,
-      alignItems: 'center',
-      padding: 20,
-    },
-    detailImage: {
-      width: '100%',
-      height: 300,
-      borderRadius: 10,
-    },
-    detailText: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginVertical: 10,
-    },
-    detailDescription: {
-      fontSize: 16,
-      textAlign: 'center',
-    },
-    picker: {
-      height: 50,
-      width: 150,
-      marginVertical: 10,
-    },
-    radioGroup: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginVertical: 10,
-    },
-    radioItem: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      marginRight: 20, // 간격 조정
-    },
-    cartContainer: {
-      flex: 1,
-      padding: 20,
-    },
-    cartTitle: {
-      fontSize: 24,
-      fontWeight: 'bold',
-      marginBottom: 10,
-    },
-    emptyCart: {
-      textAlign: 'center',
-      fontSize: 16,
-      marginTop: 20,
-    },
-    cartItem: {
-      flexDirection: 'row', // 이미지와 텍스트를 나란히 배치
-      alignItems: 'center', // 세로 정렬
-      marginBottom: 15,
-      padding: 10,
-      borderWidth: 1,
-      borderColor: '#ccc',
-      borderRadius: 5,
-    },
-    cartImage: {
-      width: 50, // 이미지 크기 조정
-      height: 50, // 이미지 크기 조정
-      borderRadius: 5,
-      marginRight: 10, // 이미지와 텍스트 간격 조정
-    },
-    cartDetails: {
-      flex: 1, // 텍스트가 남은 공간을 차지하도록 설정
-    },
-  });
+});
+
 export default MenuTab;

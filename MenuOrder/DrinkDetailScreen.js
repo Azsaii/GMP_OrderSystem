@@ -1,16 +1,29 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
 import { RadioButton } from 'react-native-paper';
+import { useSelector } from 'react-redux'; // Redux의 useSelector 가져오기
 
 const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
   const { item } = route.params;
   const [temperature, setTemperature] = useState('HOT');
   const [size, setSize] = useState('톨');
   const [extraShot, setExtraShot] = useState(false);
-  const [syrup, setSyrup] = useState(false);
   const [quantity, setQuantity] = useState(1); // 수량 상태 추가
 
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
+
   const handleAddToCart = () => {
+    if (!isLoggedIn) {
+      Alert.alert(
+        '로그인 필요',
+        '로그인을 먼저 해주세요.',
+        [
+          { text: '확인', onPress: () => navigation.navigate('Login') } // 로그인 화면으로 이동
+        ]
+      );
+      return;
+    }
+
     // Firestore에서 가져온 price가 문자열이라서 숫자로 변환
     const unitPrice = parseInt(item.price, 10) || 0;
 
@@ -21,7 +34,6 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       temperature,
       size,
       extraShot,
-      syrup,
       quantity, // 수량 추가
       unitPrice, // 가격 추가
     });
@@ -88,21 +100,6 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
           </View>
         </RadioButton.Group>
 
-        {/* 시럽 추가 */}
-        <Text>시럽 추가:</Text>
-        <RadioButton.Group onValueChange={(value) => setSyrup(value === '추가')} value={syrup ? '추가' : '없음'}>
-          <View style={styles.radioGroup}>
-            <View style={styles.radioItem}>
-              <RadioButton value="없음" />
-              <Text>없음</Text>
-            </View>
-            <View style={styles.radioItem}>
-              <RadioButton value="추가" />
-              <Text>추가</Text>
-            </View>
-          </View>
-        </RadioButton.Group>
-
         {/* 수량 선택 */}
         <Text>수량:</Text>
         <View style={styles.quantityContainer}>
@@ -132,8 +129,9 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
 const styles = StyleSheet.create({
   detailContainer: {
     flex: 1,
-    alignItems: 'center',
+    alignSelf: 'center',
     padding: 20,
+    width: '90%',
   },
   menuImage: {
     width: '100%',
