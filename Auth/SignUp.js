@@ -6,12 +6,12 @@ import {
   Alert,
 } from 'react-native';
 import styled from 'styled-components/native';
-import { auth, firestore } from './firebaseConfig';
+import { auth, firestore } from '../firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { useDispatch } from 'react-redux';
-import { setLoggedIn, setUserEmail, setUserName } from './state';
-import ErrorModal from './ErrorModal';
+import { setLoggedIn, setUserEmail, setUserName } from '../state';
+import ErrorModal from '../ErrorModal';
 
 const Container = styled.View`
   flex: 1;
