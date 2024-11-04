@@ -1,6 +1,6 @@
 // CheckoutOrder/components/CheckoutScreen.js
 
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import {
   View,
   Text,
@@ -13,13 +13,13 @@ import {
   ScrollView,
 } from 'react-native';
 import { Card, Divider, Portal, TextInput as PaperTextInput } from 'react-native-paper';
-import CartItem from './CartItem'; // 장바구니의 개별 아이템을 표시하는 컴포넌트
-import CouponModal from './CouponModal'; // 쿠폰 선택 모달
-import PaymentMethodModal from './PaymentMethodModal'; // 결제 수단을 선택할 수 있는 모달
-import styles from '../styles/CheckoutStyles'; // 스타일을 가져옴
+import CartItem from './CartItem';
+import CouponModal from './CouponModal';
+import PaymentMethodModal from './PaymentMethodModal';
+import styles from '../styles/CheckoutStyles';
 import { UserContext } from '../contexts/UserContext';
-import { firestore, auth } from '../../firebaseConfig'; // 경로 수정
-import { doc, collection, setDoc, runTransaction } from 'firebase/firestore';
+import { firestore, auth } from '../../firebaseConfig';
+import { doc, collection, runTransaction } from 'firebase/firestore';
 import moment from 'moment';
 
 // 숫자를 천 단위로 콤마로 구분해주는 함수
@@ -34,8 +34,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     paymentMethods,
     updatePoints,
     markCouponAsUsed,
-    userName, // 사용자 이름
-    addPaymentMethod, // 결제 수단 추가 함수
+    userName,
+    addPaymentMethod,
   } = useContext(UserContext);
 
   const [couponModalVisible, setCouponModalVisible] = useState(false);
@@ -45,26 +45,26 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   const [pointInput, setPointInput] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [selectedPaymentType, setSelectedPaymentType] = useState(null);
-  const [isProcessing, setIsProcessing] = useState(false); // 결제 처리 중 상태
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // 장바구니 총 금액 계산 (unitPrice 사용)
-  const getSubtotal = () => 
-    cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  // 장바구니 총 금액 계산
+  const getSubtotal = () =>
+    cartItems.reduce((sum, item) => sum + item.unitPrice * item.quantity, 0);
 
   // 쿠폰에 따른 할인 금액 계산
   const getDiscountAmount = (subtotal, coupon) => {
     if (!coupon) return 0;
-    if (coupon.minAmount <= subtotal) {
-      if (coupon.discount) {
-        return coupon.discount;
-      } else if (coupon.discountRate) {
-        return Math.floor(subtotal * coupon.discountRate);
+    if (coupon.minOrderValue <= subtotal) {
+      if (coupon.discountType === '원') {
+        return coupon.discountValue;
+      } else if (coupon.discountType === '%') {
+        return Math.floor(subtotal * (coupon.discountValue / 100));
       }
     }
     return 0;
   };
 
-  // 최종 결제 금액 계산 (할인과 포인트 적용된 금액)
+  // 최종 결제 금액 계산
   const getTotal = () => {
     const subtotal = getSubtotal();
     const discount = getDiscountAmount(subtotal, selectedCoupon);
@@ -84,7 +84,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   // 사용 가능한 쿠폰이 있는지 여부를 확인
   const hasAvailableCoupons = coupons.some(
-    (coupon) => !coupon.used && getSubtotal() >= coupon.minAmount
+    (coupon) => !coupon.used && getSubtotal() >= coupon.minOrderValue && coupon.available
   );
 
   // 포인트 입력값을 초기화하는 함수
@@ -154,7 +154,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
     const earnedPoints = Math.ceil(totalAmount * 0.02);
 
-    setIsProcessing(true); // 결제 처리 시작
+    setIsProcessing(true);
 
     try {
       // 쿠폰 사용 처리
@@ -178,11 +178,10 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
             item.size || '사이즈 설정 X',
             item.temperature || '온도 설정 X',
             item.extraShot ? '샷 추가 O' : '샷 추가 X',
-            item.syrup ? '시럽 추가 O' : '샷 추가 X',
           ].filter(Boolean),
           quantity: item.quantity.toString(),
-          total: (item.unitPrice * item.quantity).toString(),
         })),
+        total: getTotal().toString(), // total을 전체 주문 금액으로 변경
         createdAt: moment().unix().toString(),
         updatedAt: moment().unix().toString(),
         isCompleted: false,
@@ -194,8 +193,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
         {
           text: '확인',
           onPress: () => {
-            onClearCart(); // 장바구니 비우기
-            navigation.navigate('Home'); // 주문 완료 후 홈으로 이동
+            onClearCart();
+            navigation.navigate('Home');
           },
         },
       ]);
@@ -203,7 +202,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       console.error('결제 처리 중 오류:', error);
       Alert.alert('결제 실패', '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-      setIsProcessing(false); // 결제 처리 완료
+      setIsProcessing(false);
     }
   };
 
@@ -235,9 +234,16 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       });
     } catch (error) {
       console.error('주문 정보 저장 중 오류 발생:', error);
-      throw error; // 상위 catch 블록에서 처리되도록 에러를 던집니다.
+      throw error;
     }
   };
+
+  // 결제 수단 업데이트를 위한 useEffect 추가
+  useEffect(() => {
+    if (paymentMethods.length > 0 && !selectedPaymentMethod) {
+      setSelectedPaymentMethod(paymentMethods[0]); // 기본 결제 수단 설정 (첫 번째)
+    }
+  }, [paymentMethods]);
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
@@ -278,7 +284,11 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
             {selectedCoupon && (
               <>
                 <Text style={styles.selectedCoupon}>
-                  적용된 쿠폰: {selectedCoupon.name} (-{formatNumber(getDiscountAmount(getSubtotal(), selectedCoupon))}원 할인)
+                  적용된 쿠폰: {selectedCoupon.name} (
+                  {selectedCoupon.discountType === '원'
+                    ? `-${formatNumber(selectedCoupon.discountValue)}원 할인`
+                    : `-${formatNumber(getDiscountAmount(getSubtotal(), selectedCoupon))}% 할인`}
+                  )
                 </Text>
                 <TouchableOpacity onPress={cancelCoupon}>
                   <View style={styles.clearButton}>
@@ -329,32 +339,36 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
         <Text style={styles.sectionTitle}> 결제 수단 선택</Text>
         <Card style={[styles.card, styles.roundedCard]} mode="outlined">
           <Card.Content>
-            <FlatList
-              data={paymentMethods}
-              keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
-              numColumns={2}
-              columnWrapperStyle={{ justifyContent: 'space-between' }} // 각 열이 좌우로 공간을 가지도록
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => handlePaymentMethodSelect(item)}>
-                  <View
-                    style={[
-                      styles.paymentMethodItem,
-                      selectedPaymentMethod?.id === item.id && styles.selectedPaymentMethodItem,
-                      { width: 160, height: 90 },
-                    ]}
-                  >
-                    <Text style={styles.paymentMethodText}>{item.name}</Text>
-                    {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
-                      <Text style={styles.registeredText}>등록 완료</Text>
-                    )}
-                    {!['KakaoPay', 'TossPay'].includes(item.type) && !item.isRegistered && (
-                      <Text style={styles.registerText}>등록 필요</Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              )}
-              scrollEnabled={false}
-            />
+            {paymentMethods.length === 0 ? (
+              <Text style={{ textAlign: 'center', marginVertical: 20 }}>등록된 결제 수단이 없습니다.</Text>
+            ) : (
+              <FlatList
+                data={paymentMethods}
+                keyExtractor={(item, index) => item?.id?.toString() || index.toString()}
+                numColumns={2}
+                columnWrapperStyle={{ justifyContent: 'space-between' }}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => handlePaymentMethodSelect(item)}>
+                    <View
+                      style={[
+                        styles.paymentMethodItem,
+                        selectedPaymentMethod?.id === item.id && styles.selectedPaymentMethodItem,
+                        { width: 160, height: 90 },
+                      ]}
+                    >
+                      <Text style={styles.paymentMethodText}>{item.name}</Text>
+                      {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
+                        <Text style={styles.registeredText}>등록 완료</Text>
+                      )}
+                      {!['KakaoPay', 'TossPay'].includes(item.type) && !item.isRegistered && (
+                        <Text style={styles.registerText}>등록 필요</Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+                scrollEnabled={false}
+              />
+            )}
           </Card.Content>
         </Card>
       </View>
@@ -365,7 +379,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           <Text style={styles.totalText}>총 결제 금액: {formatNumber(getTotal())}원</Text>
           {selectedCoupon && (
             <Text style={styles.discountText}>
-              쿠폰 할인: -{formatNumber(getDiscountAmount(getSubtotal(), selectedCoupon))}원
+              쿠폰 할인: -{formatNumber(getDiscountAmount(getSubtotal(), selectedCoupon))}{selectedCoupon.discountType === '원' ? '원' : '%'}
             </Text>
           )}
           {usedPoints > 0 && (
