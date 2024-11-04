@@ -11,18 +11,19 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
 import { Card, Divider, Portal, TextInput as PaperTextInput } from 'react-native-paper';
 import CartItem from './CartItem';
 import CouponModal from './CouponModal';
 import PaymentMethodModal from './PaymentMethodModal';
+import CouponRegistrationModal from './CouponRegistrationModal';
 import styles from '../styles/CheckoutStyles';
 import { UserContext } from '../contexts/UserContext';
 import { firestore, auth } from '../../firebaseConfig';
 import { doc, collection, runTransaction } from 'firebase/firestore';
 import moment from 'moment';
 
-// 숫자를 천 단위로 콤마로 구분해주는 함수
 const formatNumber = (num) => (num ? num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') : '0');
 
 const CheckoutScreen = ({ route, navigation, onClearCart }) => {
@@ -40,6 +41,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   const [couponModalVisible, setCouponModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
+  const [couponRegistrationModalVisible, setCouponRegistrationModalVisible] = useState(false);
   const [selectedCoupon, setSelectedCoupon] = useState(null);
   const [usedPoints, setUsedPoints] = useState(0);
   const [pointInput, setPointInput] = useState('');
@@ -53,14 +55,17 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   // 쿠폰에 따른 할인 금액 계산
   const getDiscountAmount = (subtotal, coupon) => {
-    if (!coupon) return 0;
-    if (coupon.minOrderValue <= subtotal) {
-      if (coupon.discountType === '원') {
-        return coupon.discountValue;
-      } else if (coupon.discountType === '%') {
-        return Math.floor(subtotal * (coupon.discountValue / 100));
-      }
+    if (!coupon || subtotal < coupon.minOrderValue) return 0;
+
+    if (coupon.discountType === '원') {
+      // 정액 할인일 경우
+      return Math.min(coupon.discountValue, coupon.maxDiscountValue || coupon.discountValue);
+    } else if (coupon.discountType === '%') {
+      // 퍼센트 할인일 경우
+      const calculatedDiscount = (subtotal * coupon.discountValue) / 100;
+      return Math.min(calculatedDiscount, coupon.maxDiscountValue || calculatedDiscount);
     }
+
     return 0;
   };
 
@@ -181,7 +186,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           ].filter(Boolean),
           quantity: item.quantity.toString(),
         })),
-        total: getTotal().toString(), // total을 전체 주문 금액으로 변경
+        totalAmount: getTotal().toString(),
         createdAt: moment().unix().toString(),
         updatedAt: moment().unix().toString(),
         isCompleted: false,
@@ -189,15 +194,19 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       });
 
       // 결제 완료 후 알림
-      Alert.alert('결제 완료', `결제가 완료되었습니다.\n적립된 포인트: ${earnedPoints}점`, [
-        {
-          text: '확인',
-          onPress: () => {
-            onClearCart();
-            navigation.navigate('Home');
+      Alert.alert(
+        '결제 완료',
+        `결제가 완료되었습니다.\n적립된 포인트: ${earnedPoints}점`,
+        [
+          {
+            text: '확인',
+            onPress: () => {
+              onClearCart();
+              navigation.navigate('Home');
+            },
           },
-        },
-      ]);
+        ]
+      );
     } catch (error) {
       console.error('결제 처리 중 오류:', error);
       Alert.alert('결제 실패', '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
@@ -249,7 +258,10 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       {/* 주문 내역 표시 */}
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}> 주문 상품</Text>
+        <View style={checkoutStyles.sectionHeader}>
+          <Text style={checkoutStyles.sectionTitle}> 주문 상품</Text>
+          {/* 주문 상품 섹션에서 쿠폰 등록 버튼 제거 */}
+        </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
             <FlatList
@@ -267,14 +279,22 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
         </Card>
       </View>
 
-      {/* 쿠폰 모달 */}
+      {/* 쿠폰 적용 */}
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}> 쿠폰 적용</Text>
+        <View style={checkoutStyles.sectionHeader}>
+          <Text style={checkoutStyles.sectionTitle}> 쿠폰 적용</Text>
+          <TouchableOpacity onPress={() => setCouponRegistrationModalVisible(true)}>
+            {/* 버튼 스타일을 다른 버튼들과 동일하게 수정 */}
+            <View style={styles.CouponButton}>
+              <Text style={styles.CouponButtonText}>쿠폰 등록</Text>
+            </View>
+          </TouchableOpacity>
+        </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
             <TouchableOpacity onPress={() => setCouponModalVisible(true)}>
               <View style={styles.orderButton}>
-                <Text style={styles.orderButtonText}> 쿠폰 선택</Text>
+                <Text style={styles.orderButtonText}>쿠폰 선택</Text>
               </View>
             </TouchableOpacity>
             <Divider />
@@ -303,7 +323,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 포인트 사용 */}
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}> 포인트 사용</Text>
+        <Text style={checkoutStyles.sectionTitle}> 포인트 사용</Text>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
             <Text style={styles.label}>보유 포인트: {formatNumber(availablePoints)}점</Text>
@@ -336,7 +356,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 결제 수단 선택 */}
       <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}> 결제 수단 선택</Text>
+        <Text style={checkoutStyles.sectionTitle}> 결제 수단 선택</Text>
         <Card style={[styles.card, styles.roundedCard]} mode="outlined">
           <Card.Content>
             {paymentMethods.length === 0 ? (
@@ -379,7 +399,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           <Text style={styles.totalText}>총 결제 금액: {formatNumber(getTotal())}원</Text>
           {selectedCoupon && (
             <Text style={styles.discountText}>
-              쿠폰 할인: -{formatNumber(getDiscountAmount(getSubtotal(), selectedCoupon))}{selectedCoupon.discountType === '원' ? '원' : '%'}
+              쿠폰 할인: -{formatNumber(getDiscountAmount(getSubtotal(), selectedCoupon))}
+              {selectedCoupon.discountType === '원' ? '원' : '%'}
             </Text>
           )}
           {usedPoints > 0 && (
@@ -417,9 +438,25 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           setSelectedPaymentMethod={setSelectedPaymentMethod}
           setPaymentModalVisible={setPaymentModalVisible}
         />
+        <CouponRegistrationModal
+          visible={couponRegistrationModalVisible}
+          onDismiss={() => setCouponRegistrationModalVisible(false)}
+        />
       </Portal>
     </ScrollView>
   );
 };
+
+const checkoutStyles = StyleSheet.create({
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+});
 
 export default CheckoutScreen;

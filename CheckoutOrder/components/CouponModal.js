@@ -5,7 +5,6 @@ import { View, Text, TouchableWithoutFeedback } from 'react-native';
 import { Dialog, List, Button, Divider } from 'react-native-paper';
 import styles from '../styles/CheckoutStyles';
 
-// 쿠폰 모달 컴포넌트
 const CouponModal = ({
   visible,
   onDismiss,
@@ -14,36 +13,38 @@ const CouponModal = ({
   setSelectedCoupon,
   getDiscountAmount,
 }) => {
-  // 쿠폰 선택 처리 함수
   const handleCouponSelect = (coupon) => {
-    setSelectedCoupon(coupon); // 쿠폰 선택
-    onDismiss(); // 모달 닫기
+    setSelectedCoupon(coupon);
+    onDismiss();
   };
+
+  // 필터링된 쿠폰 목록: 사용되지 않았고, 최소 주문 금액을 만족하며, 사용 가능 상태
+  const availableCoupons = coupons.filter(
+    (coupon) =>
+      !coupon.used &&
+      getSubtotal() >= coupon.minOrderValue &&
+      coupon.available
+  );
 
   return (
     <Dialog visible={visible} onDismiss={onDismiss}>
       <Dialog.Title>쿠폰 선택</Dialog.Title>
       <Dialog.Content>
-        {coupons.map((coupon) => {
-          // 쿠폰이 사용되었거나 최소 주문 금액을 넘지 못하면 비활성화
-          const isDisabled = getSubtotal() < coupon.minOrderValue || coupon.used;
-
-          return (
+        {availableCoupons.length === 0 ? (
+          <Text style={{ textAlign: 'center', marginVertical: 20 }}>
+            사용 가능한 쿠폰이 없습니다.
+          </Text>
+        ) : (
+          availableCoupons.map((coupon) => (
             <View
               key={coupon.id}
               style={[
                 styles.couponItem,
-                isDisabled
-                  ? { backgroundColor: '#e0e0e0' }
-                  : { backgroundColor: '#f0f0f0' },
+                { backgroundColor: '#f0f0f0' },
               ]}
             >
               <TouchableWithoutFeedback
-                onPress={() => {
-                  if (!isDisabled && !coupon.used) {
-                    handleCouponSelect(coupon); // 쿠폰 선택
-                  }
-                }}
+                onPress={() => handleCouponSelect(coupon)}
               >
                 <View style={styles.couponTouchable}>
                   <List.Item
@@ -70,13 +71,7 @@ const CouponModal = ({
                           </Text>
                         )}
                         <Text style={{ color: 'black' }}>
-                          시작일: {coupon.startDate}
-                        </Text>
-                        <Text style={{ color: 'black' }}>
-                          종료일: {coupon.endDate}
-                        </Text>
-                        <Text style={{ color: 'black' }}>
-                          사용 가능 여부: {coupon.available ? '사용 가능' : '사용 불가'}
+                          유효 기간: {coupon.startDate} ~ {coupon.endDate}
                         </Text>
                         <Text style={{ color: 'black' }}>
                           결합 가능 여부: {coupon.canBeCombined ? '결합 가능' : '결합 불가'}
@@ -90,8 +85,8 @@ const CouponModal = ({
               </TouchableWithoutFeedback>
               <Divider />
             </View>
-          );
-        })}
+          ))
+        )}
       </Dialog.Content>
       <Dialog.Actions>
         <Button onPress={onDismiss}>닫기</Button>
