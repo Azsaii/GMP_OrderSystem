@@ -26,7 +26,7 @@ const CouponModal = ({
       <Dialog.Content>
         {coupons.map((coupon) => {
           // 쿠폰이 사용되었거나 최소 주문 금액을 넘지 못하면 비활성화
-          const isDisabled = getSubtotal() < coupon.minAmount || coupon.used;
+          const isDisabled = getSubtotal() < coupon.minOrderValue || coupon.used;
 
           return (
             <View
@@ -48,24 +48,38 @@ const CouponModal = ({
                 <View style={styles.couponTouchable}>
                   <List.Item
                     title={
-                      coupon.used ? ( // 사용된 쿠폰은 "사용 완료"로 표시
-                        <Text style={styles.usedText}>사용 완료</Text>
-                      ) : isDisabled ? (
-                        <Text style={styles.disabledText}>사용 불가</Text>
-                      ) : (
-                        <Text style={styles.enabledText}>사용 가능</Text>
-                      )
+                      <Text style={{ color: 'black', fontWeight: 'bold' }}>
+                        {coupon.name}
+                      </Text>
                     }
                     description={
                       <View>
-                        <Text style={{ color: 'black' }}>{coupon.name}</Text>
-                        {/* 쿠폰의 최소 주문 금액 표시 */}
+                        <Text style={{ color: 'black' }}>{coupon.description}</Text>
                         <Text style={{ color: 'black' }}>
-                          최소 주문 금액: {coupon.minAmount}원
+                          최소 주문 금액: {coupon.minOrderValue}원
                         </Text>
-                        {/* 실제 할인 금액 표시 */}
                         <Text style={{ color: 'black' }}>
-                          실제 할인 금액: {getDiscountAmount(getSubtotal(), coupon)}원
+                          할인 유형: {coupon.discountType === '%' ? '% 할인' : '고정 금액 할인'}
+                        </Text>
+                        <Text style={{ color: 'black' }}>
+                          할인 금액: {coupon.discountValue}{coupon.discountType}
+                        </Text>
+                        {coupon.discountType === '%' && (
+                          <Text style={{ color: 'black' }}>
+                            최대 할인 금액: {coupon.maxDiscountValue}원
+                          </Text>
+                        )}
+                        <Text style={{ color: 'black' }}>
+                          시작일: {coupon.startDate}
+                        </Text>
+                        <Text style={{ color: 'black' }}>
+                          종료일: {coupon.endDate}
+                        </Text>
+                        <Text style={{ color: 'black' }}>
+                          사용 가능 여부: {coupon.available ? '사용 가능' : '사용 불가'}
+                        </Text>
+                        <Text style={{ color: 'black' }}>
+                          결합 가능 여부: {coupon.canBeCombined ? '결합 가능' : '결합 불가'}
                         </Text>
                       </View>
                     }

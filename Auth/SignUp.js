@@ -96,10 +96,49 @@ const SignUp = ({ navigation }) => {
       );
       const user = userCredential.user;
       const userRef = doc(firestore, 'users', user.uid);
+      // 초기 데이터에 쿠폰과 결제 수단 추가
       const initialData = {
         name: nickname,
         email: email,
         points: 5000,
+        coupons: [
+          {
+            used: false, // user의 사용여부 표시
+            available: true, // 쿠폰 유효기간?
+            description: '10,000원 이상 주문시 3000원 할인',
+            name: '신규 가입 쿠폰',
+            discountType: '원',
+            discountValue: 3000, // 할인 값 (3000원 고정금액 할인)
+            discountRate: 0, // 할인 퍼센트, 원일때 사용 X
+            minOrderValue: 10000, // 최소 주문 금액
+            maxDiscountValue: 3000, // 최대 할인 금액
+            startDate: '240101',
+            endDate: '251231',
+            isPublic: true, // true인 경우 쿠폰 등록 가능, false면 코드 입력으로 등록
+            canBeCombined: false, // true인 경우 다른 쿠폰과 함께 사용 가능
+          },
+          {
+            used: false, // user의 사용여부 표시
+            available: true, // 쿠폰 유효기간?
+            description: '10,000원 이상 주문시 10% 할인',
+            name: '신규 가입 쿠폰',
+            discountType: '%',
+            discountValue: 3000, // 할인 값, %일때 사용 X
+            discountRate: 10, // 할인 퍼센트 (10%)
+            minOrderValue: 10000, // 최소 주문 금액
+            maxDiscountValue: 3000, // 최대 할인 금액
+            startDate: '240101',
+            endDate: '251231',
+            isPublic: true,
+            canBeCombined: false,
+          },
+        ],
+        paymentMethods: [
+          { id: 'p1', type: 'Card', name: '카드', isRegistered: false },
+          { id: 'p2', type: 'Account', name: '계좌', isRegistered: false },
+          { id: 'p3', type: 'KakaoPay', name: '카카오페이', isRegistered: true },
+          { id: 'p4', type: 'TossPay', name: '토스페이', isRegistered: true },
+        ],
       };
       await setDoc(userRef, initialData);
 
