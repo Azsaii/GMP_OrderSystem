@@ -103,34 +103,32 @@ const SignUp = ({ navigation }) => {
         points: 5000,
         coupons: [
           {
-            used: false, // user의 사용여부 표시
-            available: true, // 쿠폰 유효기간?
-            description: '10,000원 이상 주문시 3000원 할인',
-            name: '신규 가입 쿠폰',
-            discountType: '원',
-            discountValue: 3000, // 할인 값 (3000원 고정금액 할인)
-            discountRate: 0, // 할인 퍼센트, 원일때 사용 X
+            name: '신규 가입 쿠폰 (고정 금액)',
+            description: '10,000원 이상 주문 시 3,000원 할인',
+            discountType: '원', // '원' 또는 '%'
+            discountValue: 3000, // 고정 금액 할인 (3,000원)
             minOrderValue: 10000, // 최소 주문 금액
-            maxDiscountValue: 3000, // 최대 할인 금액
+            maxDiscountValue: 3000, // 최대 할인 금액 (고정 금액일 경우 discountValue와 동일)
             startDate: '240101',
             endDate: '251231',
-            isPublic: true, // true인 경우 쿠폰 등록 가능, false면 코드 입력으로 등록
-            canBeCombined: false, // true인 경우 다른 쿠폰과 함께 사용 가능
+            isPublic: true, // 공개 쿠폰 여부
+            canBeCombined: false, // 다른 쿠폰과 결합 가능 여부
+            available: true,
+            used: false,
           },
           {
-            used: false, // user의 사용여부 표시
-            available: true, // 쿠폰 유효기간?
-            description: '10,000원 이상 주문시 10% 할인',
-            name: '신규 가입 쿠폰',
-            discountType: '%',
-            discountValue: 3000, // 할인 값, %일때 사용 X
-            discountRate: 10, // 할인 퍼센트 (10%)
+            name: '신규 가입 쿠폰 (퍼센트)',
+            description: '10,000원 이상 주문 시 10% 할인',
+            discountType: '%', // '원' 또는 '%'
+            discountValue: 10, // 퍼센트 할인 (10%)
             minOrderValue: 10000, // 최소 주문 금액
             maxDiscountValue: 3000, // 최대 할인 금액
             startDate: '240101',
             endDate: '251231',
-            isPublic: true,
-            canBeCombined: false,
+            isPublic: true, // 공개 쿠폰 여부
+            canBeCombined: false, // 다른 쿠폰과 결합 가능 여부
+            available: true,
+            used: false,
           },
         ],
         paymentMethods: [
