@@ -116,7 +116,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
           isPublic: coupon.isPublic,
           canBeCombined: coupon.canBeCombined,
           available: coupon.available,
-          used: false,
+          isUsed: false,
         }),
       });
 
@@ -204,7 +204,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
           isPublic: coupon.isPublic,
           canBeCombined: coupon.canBeCombined,
           available: coupon.available,
-          used: false,
+          isUsed: false,
         }),
       });
 

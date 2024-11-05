@@ -114,7 +114,7 @@ const SignUp = ({ navigation }) => {
             isPublic: true, // 공개 쿠폰 여부
             canBeCombined: false, // 다른 쿠폰과 결합 가능 여부
             available: true,
-            used: false,
+            isUsed: false, // user 쿠폰 사용 여부 기록
           },
           {
             name: '신규 가입 쿠폰 (퍼센트)',
@@ -128,7 +128,7 @@ const SignUp = ({ navigation }) => {
             isPublic: true, // 공개 쿠폰 여부
             canBeCombined: false, // 다른 쿠폰과 결합 가능 여부
             available: true,
-            used: false,
+            isUsed: false, // user 쿠폰 사용 여부 기록
           },
         ],
         paymentMethods: [

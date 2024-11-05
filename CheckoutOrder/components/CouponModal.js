@@ -117,7 +117,7 @@ const CouponModal = ({
   // 필터링된 쿠폰 목록: 사용되지 않았고, 최소 주문 금액을 만족하며, 사용 가능 상태
   const availableCoupons = coupons.filter(
     (coupon) =>
-      !coupon.used &&
+      !coupon.isUsed &&
       getSubtotal() >= coupon.minOrderValue &&
       coupon.available
   );

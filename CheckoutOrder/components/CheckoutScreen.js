@@ -108,7 +108,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   // 사용 가능한 쿠폰이 있는지 여부를 확인
   const hasAvailableCoupons = coupons.some(
-    (coupon) => !coupon.used && getSubtotal() >= coupon.minOrderValue && coupon.available
+    (coupon) => !coupon.isUsed && getSubtotal() >= coupon.minOrderValue && coupon.available
   );
 
   // 포인트 입력값을 초기화하는 함수
