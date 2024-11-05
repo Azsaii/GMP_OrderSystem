@@ -75,7 +75,7 @@ export const UserProvider = ({ children }) => {
   const markCouponsAsUsed = async (couponIdentifiers) => {
     const updatedCoupons = coupons.map((coupon) =>
       couponIdentifiers.includes(`${coupon.name}_${coupon.discountType}`)
-        ? { ...coupon, used: true }
+        ? { ...coupon, isUsed: true }
         : coupon
     );
     setCoupons(updatedCoupons);
