@@ -127,7 +127,7 @@ const CheckoutStyles = StyleSheet.create({
     backgroundColor: '#007BFF',
     padding: 5,
     borderRadius: 5,
-    alignItems: 'right',
+    alignItems: 'center',
     margin: 10,
   },
   CouponButtonText: {

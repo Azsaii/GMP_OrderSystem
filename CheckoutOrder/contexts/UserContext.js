@@ -72,9 +72,11 @@ export const UserProvider = ({ children }) => {
   };
 
   // 쿠폰 사용 처리 함수
-  const markCouponAsUsed = async (couponId) => {
+  const markCouponsAsUsed = async (couponIdentifiers) => {
     const updatedCoupons = coupons.map((coupon) =>
-      coupon.id === couponId ? { ...coupon, used: true } : coupon
+      couponIdentifiers.includes(`${coupon.name}_${coupon.discountType}`)
+        ? { ...coupon, used: true }
+        : coupon
     );
     setCoupons(updatedCoupons);
     if (userId) {
@@ -130,9 +132,9 @@ export const UserProvider = ({ children }) => {
         points,
         coupons,
         paymentMethods,
-        userName, // 사용자 이름 제공
+        userName,
         updatePoints,
-        markCouponAsUsed,
+        markCouponsAsUsed,
         addPoints,
         addPaymentMethod,
       }}

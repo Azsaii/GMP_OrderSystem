@@ -44,7 +44,6 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
   const fetchPublicCoupons = async () => {
     setLoadingPublic(true);
     try {
-      // Firestore 컬렉션 이름을 'coupon'으로 수정
       const couponsCollection = collection(firestore, 'coupon');
 
       // isPublic이 true인 쿠폰만 조회
@@ -75,7 +74,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
         return isAvailable && isWithinDate;
       });
 
-      console.log('유효한 쿠폰:', validCoupons);
+      console.log('유효한 공개 쿠폰:', validCoupons);
 
       setPublicCoupons(validCoupons);
     } catch (error) {
@@ -121,6 +120,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
         }),
       });
 
+      console.log(`쿠폰 등록 성공: ${coupon.id}`);
       Alert.alert('성공', '쿠폰이 성공적으로 등록되었습니다.');
       onDismiss();
     } catch (error) {
@@ -138,17 +138,21 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
     setLoadingPromo(true);
     try {
       const promoCodeTrimmed = promoCode.trim();
+      console.log(`입력된 프로모션 코드: ${promoCodeTrimmed}`);
+
       const promoDocRef = doc(firestore, 'coupon', promoCodeTrimmed); // 'coupon'으로 수정
       const promoDocSnapshot = await getDoc(promoDocRef);
 
       if (!promoDocSnapshot.exists()) {
+        console.log('프로모션 코드가 존재하지 않습니다.');
         Alert.alert('알림', '유효한 프로모션 코드가 아닙니다.');
         return;
       }
 
       const coupon = { id: promoDocSnapshot.id, ...promoDocSnapshot.data() };
+      console.log('조회된 프로모션 쿠폰:', coupon);
 
-      // 쿠폰이 공개 쿠폰인지 확인
+      // isPublic이 false인지 확인
       if (coupon.isPublic) {
         Alert.alert(
           '알림',
@@ -161,6 +165,10 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
       const now = moment().format('YYMMDD');
       const isAvailable = coupon.available === true;
       const isWithinDate = coupon.startDate <= now && coupon.endDate >= now;
+
+      console.log(
+        `쿠폰 ID: ${coupon.id}, isAvailable: ${isAvailable}, isWithinDate: ${isWithinDate}`
+      );
 
       if (!isAvailable || !isWithinDate) {
         Alert.alert('알림', '해당 쿠폰은 현재 사용할 수 없습니다.');
@@ -200,6 +208,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
         }),
       });
 
+      console.log(`프로모션 쿠폰 등록 성공: ${coupon.id}`);
       Alert.alert('성공', '프로모션 코드가 성공적으로 등록되었습니다.');
       setPromoCode('');
       onDismiss();
@@ -256,11 +265,16 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
                         ? `${formatNumber(item.discountValue)}원`
                         : `${item.discountValue}%`}
                     </Text>
-                    <Text style={styles.couponDetails}>
-                      최대 할인 금액: {formatNumber(item.maxDiscountValue)}원
-                    </Text>
+                    {item.discountType === '%' && (
+                      <Text style={styles.couponDetails}>
+                        최대 할인 금액: {formatNumber(item.maxDiscountValue)}원
+                      </Text>
+                    )}
                     <Text style={styles.couponDetails}>
                       유효 기간: {item.startDate} ~ {item.endDate}
+                    </Text>
+                    <Text style={styles.couponDetails}>
+                      결합 가능 여부: {item.canBeCombined ? '결합 가능' : '결합 불가'}
                     </Text>
                   </View>
                   <Button
