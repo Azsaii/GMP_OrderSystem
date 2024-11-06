@@ -1,5 +1,5 @@
-import React from 'react';
-import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView } from 'react-native';
+import React, { useState } from 'react';
+import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
 
 // 장바구니 아이템을 그룹화하는 함수
 const groupCartItems = (cartItems) => {
@@ -29,7 +29,7 @@ const CartScreen = ({ cartItems, navigation }) => {
         ) : (
           groupedCartItems.map((item, index) => (
             <View key={index} style={styles.cartItem}>
-              <Image source={{ uri: item.image }} style={styles.cartImage} />
+              <ImageLoader uri={item.image} />
               <View style={styles.cartDetails}>
                 <Text>{item.name}</Text>
                 {item.temperature ? ( // 온도 옵션이 있으면 drink, 없으면 dessert로 표시
@@ -67,6 +67,25 @@ const CartScreen = ({ cartItems, navigation }) => {
   );
 };
 
+// 이미지 로더 컴포넌트
+const ImageLoader = ({ uri }) => {
+  const [imageLoading, setImageLoading] = useState(true); // 이미지 로딩 상태
+
+  return (
+    <View style={styles.imageContainer}>
+      {imageLoading && (
+        <ActivityIndicator size="small" color="#0000ff" style={styles.spinner} />
+      )}
+      <Image
+        source={{ uri }}
+        style={styles.cartImage}
+        onLoadStart={() => setImageLoading(true)}
+        onLoadEnd={() => setImageLoading(false)}
+      />
+    </View>
+  );
+};
+
 // 스타일 정의
 const styles = StyleSheet.create({
   cartContainer: {
@@ -92,11 +111,21 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     borderRadius: 5,
   },
+  imageContainer: {
+    position: 'relative', // 스피너와 이미지를 겹치게 배치
+  },
   cartImage: {
     width: 50, // 이미지 크기 조정
     height: 50, // 이미지 크기 조정
     borderRadius: 5,
     marginRight: 10, // 이미지와 텍스트 간격 조정
+  },
+  spinner: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    marginLeft: -12.5, // 스피너 중앙 정렬
+    marginTop: -12.5, // 스피너 중앙 정렬
   },
   cartDetails: {
     flex: 1, // 텍스트가 남은 공간을 차지하도록 설정

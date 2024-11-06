@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { RadioButton } from 'react-native-paper';
 import { useSelector } from 'react-redux'; // Redux의 useSelector 가져오기
 
@@ -9,6 +9,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
   const [size, setSize] = useState('톨');
   const [extraShot, setExtraShot] = useState(false);
   const [quantity, setQuantity] = useState(1); // 수량 상태 추가
+  const [imageLoading, setImageLoading] = useState(true); // 이미지 로딩 상태 추가
 
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
 
@@ -24,7 +25,6 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       return;
     }
 
-    // Firestore에서 가져온 price가 문자열이라서 숫자로 변환
     const unitPrice = parseInt(item.price, 10) || 0;
 
     addToCart({
@@ -47,7 +47,19 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         contentContainerStyle={{ paddingBottom: 80 }}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        <Image source={{ uri: item.image_url }} style={styles.menuImage} />
+        
+        <View style={styles.imageContainer}>
+          {imageLoading && (
+            <ActivityIndicator size="large" color="#0000ff" style={styles.spinner} />
+          )}
+          <Image
+            source={{ uri: item.image_url }}
+            style={styles.menuImage}
+            onLoadStart={() => setImageLoading(true)}
+            onLoadEnd={() => setImageLoading(false)}
+          />
+        </View>
+
         <Text style={styles.detailText}>{item.name}</Text>
         <Text style={styles.detailDescription}>{item.description}</Text>
 
@@ -133,10 +145,17 @@ const styles = StyleSheet.create({
     padding: 20,
     width: '90%',
   },
+  imageContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   menuImage: {
     width: '100%',
     height: 300,
     borderRadius: 10,
+  },
+  spinner: {
+    position: 'absolute',
   },
   detailText: {
     fontSize: 24,

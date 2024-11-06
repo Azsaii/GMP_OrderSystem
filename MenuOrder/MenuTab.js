@@ -1,17 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert } from 'react-native';
+import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { firestore } from './../firebaseConfig'; // firebase.js 파일의 경로에 맞게 수정
 import { collection, getDocs } from 'firebase/firestore';
 import { useSelector } from 'react-redux'; // Redux의 useSelector 가져오기
 
 const MenuTab = ({ navigation, category }) => {
   const [menuItems, setMenuItems] = useState([]);
+  const [loadingStates, setLoadingStates] = useState({}); // 각 이미지의 로딩 상태를 저장할 객체
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
 
   useEffect(() => {
     const fetchMenuData = async () => {
       try {
-        // category에 따라 적절한 컬렉션을 가져옴
         const querySnapshot = await getDocs(collection(firestore, category));
         const items = querySnapshot.docs.map(doc => ({
           id: doc.id,
@@ -40,6 +40,14 @@ const MenuTab = ({ navigation, category }) => {
     }
   };
 
+  const handleImageLoadStart = (id) => {
+    setLoadingStates((prev) => ({ ...prev, [id]: true }));
+  };
+
+  const handleImageLoadEnd = (id) => {
+    setLoadingStates((prev) => ({ ...prev, [id]: false }));
+  };
+
   return (
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
@@ -53,10 +61,17 @@ const MenuTab = ({ navigation, category }) => {
                 navigation.navigate(detailScreen, { item });
               }}
             >
-              <Image 
-                source={{ uri: item.image_url }} 
-                style={styles.menuImage} 
-              />
+              <View style={styles.imageContainer}>
+                {loadingStates[item.id] && (
+                  <ActivityIndicator size="large" color="#0000ff" style={styles.spinner} />
+                )}
+                <Image 
+                  source={{ uri: item.image_url }} 
+                  style={styles.menuImage} 
+                  onLoadStart={() => handleImageLoadStart(item.id)}
+                  onLoadEnd={() => handleImageLoadEnd(item.id)}
+                />
+              </View>
               <Text style={styles.menuText}>{item.name}</Text>
               <Text style={styles.menuPrice}>{item.price} 원</Text>
             </TouchableOpacity>
@@ -96,10 +111,20 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       marginBottom: 10,
     },
+    imageContainer: {
+      width: '100%',
+      height: 200,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
     menuImage: {
       width: '100%',
       height: 200,
       borderRadius: 10,
+      position: 'absolute',
+    },
+    spinner: {
+      position: 'absolute',
     },
     menuText: {
       textAlign: 'center',
