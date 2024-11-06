@@ -17,7 +17,7 @@ const groupCartItems = (cartItems) => {
   return Object.values(groupedItems);
 };
 
-const CartScreen = ({ cartItems, navigation }) => {
+const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
   const groupedCartItems = groupCartItems(cartItems); // 그룹화된 장바구니 아이템
 
   return (
@@ -47,6 +47,12 @@ const CartScreen = ({ cartItems, navigation }) => {
                   </>
                 )}
               </View>
+              <TouchableOpacity 
+                style={styles.removeButton} 
+                onPress={() => removeFromCart(item)} // 아이템 제거
+              >
+                <Text style={styles.removeButtonText}>X</Text>
+              </TouchableOpacity>
             </View>
           ))
         )}
@@ -140,6 +146,16 @@ const styles = StyleSheet.create({
   orderButtonText: {
     color: '#FFFFFF',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  removeButton: {
+    marginLeft: 10,
+    backgroundColor: '#FF0000', // 빨간색 배경
+    borderRadius: 5,
+    padding: 5,
+  },
+  removeButtonText: {
+    color: '#FFFFFF',
     fontWeight: 'bold',
   },
 });
