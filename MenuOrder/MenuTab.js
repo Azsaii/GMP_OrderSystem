@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator, TextInput } from 'react-native';
 import { firestore } from './../firebaseConfig'; // firebase.js 파일의 경로에 맞게 수정
 import { collection, getDocs } from 'firebase/firestore';
 import { useSelector } from 'react-redux'; // Redux의 useSelector 가져오기
 
 const MenuTab = ({ navigation, category }) => {
   const [menuItems, setMenuItems] = useState([]);
+  const [filteredItems, setFilteredItems] = useState([]);
   const [loadingStates, setLoadingStates] = useState({}); // 각 이미지의 로딩 상태를 저장할 객체
+  const [searchTerm, setSearchTerm] = useState(''); // 검색어 상태
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
 
   useEffect(() => {
@@ -18,6 +20,7 @@ const MenuTab = ({ navigation, category }) => {
           ...doc.data()
         }));
         setMenuItems(items);
+        setFilteredItems(items); // 초기 필터링된 항목을 모든 항목으로 설정
       } catch (error) {
         console.error("데이터 가져오는 중 오류 발생:", error);
       }
@@ -25,6 +28,19 @@ const MenuTab = ({ navigation, category }) => {
 
     fetchMenuData();
   }, [category]);
+
+  // 검색 기능
+  const handleSearch = (text) => {
+    setSearchTerm(text);
+    if (text) {
+      const filtered = menuItems.filter(item => 
+        item.name.toLowerCase().includes(text.toLowerCase())
+      );
+      setFilteredItems(filtered);
+    } else {
+      setFilteredItems(menuItems);
+    }
+  };
 
   const handleCartNavigation = () => {
     if (isLoggedIn) {
@@ -50,9 +66,20 @@ const MenuTab = ({ navigation, category }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      <View style={styles.searchContainer}>
+        <TextInput 
+          style={styles.searchInput} 
+          placeholder="메뉴 검색..." 
+          value={searchTerm} 
+          onChangeText={handleSearch} 
+        />
+        <TouchableOpacity style={styles.searchButton} onPress={() => handleSearch(searchTerm)}>
+          <Text style={styles.searchButtonText}>🔍</Text>
+        </TouchableOpacity>
+      </View>
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <View style={styles.menuContainer}>
-          {menuItems.map((item) => (
+          {filteredItems.map((item) => (
             <TouchableOpacity
               key={item.id}
               style={styles.menuItem}
@@ -146,6 +173,25 @@ const styles = StyleSheet.create({
       color: '#FFFFFF',
       fontSize: 16,
       fontWeight: 'bold',
+    },
+    searchContainer: {
+      flexDirection: 'row',
+      padding: 10,
+      alignItems: 'center',
+    },
+    searchInput: {
+      flex: 1,
+      borderColor: '#ccc',
+      borderWidth: 1,
+      borderRadius: 5,
+      padding: 10,
+    },
+    searchButton: {
+      marginLeft: 10,
+      padding: 10,
+    },
+    searchButtonText: {
+      fontSize: 18,
     },
 });
 
