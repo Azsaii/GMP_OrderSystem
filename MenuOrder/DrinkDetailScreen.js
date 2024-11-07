@@ -37,7 +37,10 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       quantity, // 수량 추가
       unitPrice, // 가격 추가
     });
-    alert('장바구니에 담았습니다!');
+    Alert.alert(
+      '장바구니에 담기',
+      '장바구니에 담았습니다!',
+    );
     navigation.goBack();
   };
 

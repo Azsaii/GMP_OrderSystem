@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, ActivityIndicator } from 'react-native';
+import CustomAlert from './CustomAlert'; // 커스텀 모달 임포트
 
 // 장바구니 아이템을 그룹화하는 함수
 const groupCartItems = (cartItems) => {
@@ -19,6 +20,7 @@ const groupCartItems = (cartItems) => {
 
 const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
   const groupedCartItems = groupCartItems(cartItems); // 그룹화된 장바구니 아이템
+  const [modalVisible, setModalVisible] = useState(false); // 모달 상태
 
   return (
     <SafeAreaView style={styles.cartContainer}>
@@ -61,7 +63,8 @@ const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
         style={styles.orderButton} 
         onPress={() => {
           if (groupedCartItems.length === 0) {
-            alert('장바구니에 담긴 상품이 없습니다.');
+            setModalVisible(true); // 모달 표시
+            // alert('장바구니에 담긴 상품이 없습니다.');
             return;
           }
           navigation.navigate('Checkout', { cartItems: groupedCartItems }); // CheckoutScreen으로 이동
@@ -69,6 +72,14 @@ const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
       >
         <Text style={styles.orderButtonText}>주문하기</Text>
       </TouchableOpacity>
+
+      {/* 커스텀 모달 사용 */}
+      <CustomAlert
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        title="장바구니 비어있음"
+        message="장바구니에 담긴 상품이 없습니다."
+      />
     </SafeAreaView>
   );
 };
