@@ -35,6 +35,17 @@ const AppNavigator = () => {
     setCartItems([...cartItems, item]);
   };
 
+  // 장바구니에서 메뉴를 제거하는 함수
+  const removeFromCart = (itemToRemove) => {
+    setCartItems(cartItems.filter(item => 
+      item.name !== itemToRemove.name ||
+      item.temperature !== itemToRemove.temperature ||
+      item.size !== itemToRemove.size ||
+      item.extraShot !== itemToRemove.extraShot ||
+      item.syrup !== itemToRemove.syrup
+    ));
+  };
+
   const clearCart = () => {
     setCartItems([]);
   };
@@ -106,7 +117,11 @@ const AppNavigator = () => {
       </Stack.Screen>
       <Stack.Screen name="Cart">
         {(props) => (
-          <CartScreen {...props} cartItems={cartItems} clearCart={clearCart} />
+          <CartScreen {...props}
+          cartItems={cartItems}
+          clearCart={clearCart}
+          removeFromCart={removeFromCart} // 제거 함수 전달
+          />
         )}
       </Stack.Screen>
       <Stack.Screen name="Checkout">
