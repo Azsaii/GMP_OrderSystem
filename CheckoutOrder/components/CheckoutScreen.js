@@ -13,7 +13,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { Card, Divider, Portal, TextInput as PaperTextInput } from 'react-native-paper';
+import { Card, Divider, IconButton, Portal, TextInput as PaperTextInput } from 'react-native-paper';
 import CartItem from './CartItem';
 import CouponModal from './CouponModal';
 import PaymentMethodModal from './PaymentMethodModal';
@@ -37,6 +37,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     markCouponsAsUsed, // markCouponsAsUsed 함수 참조
     userName,
     addPaymentMethod,
+    unregisterPaymentMethod,
   } = useContext(UserContext); // markCouponsAsUsed 포함
 
   const [couponModalVisible, setCouponModalVisible] = useState(false);
@@ -104,6 +105,28 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     } else {
       setSelectedPaymentMethod(method);
     }
+  };
+
+  // 결제 수단을 삭제하는 함수
+  const handleDeletePaymentMethod = (methodId) => {
+    Alert.alert(
+      '결제 수단 삭제',
+      '해당 결제 수단을 삭제하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => {
+            unregisterPaymentMethod(methodId);
+            if (selectedPaymentMethod?.id === methodId) {
+              setSelectedPaymentMethod(null); // 삭제된 결제 수단이 선택되어 있으면 선택 해제
+            }
+            showToast('결제 수단이 삭제되었습니다.');
+          },
+        },
+      ]
+    );
   };
 
   // 사용 가능한 쿠폰이 있는지 여부를 확인
@@ -395,23 +418,38 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                 numColumns={2}
                 columnWrapperStyle={{ justifyContent: 'space-between' }}
                 renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => handlePaymentMethodSelect(item)}>
-                    <View
-                      style={[
-                        styles.paymentMethodItem,
-                        selectedPaymentMethod?.id === item.id && styles.selectedPaymentMethodItem,
-                        { width: 160, height: 90 },
-                      ]}
-                    >
-                      <Text style={styles.paymentMethodText}>{item.name}</Text>
-                      {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
-                        <Text style={styles.registeredText}>등록 완료</Text>
-                      )}
-                      {!['KakaoPay', 'TossPay'].includes(item.type) && !item.isRegistered && (
-                        <Text style={styles.registerText}>등록 필요</Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
+                  <View style={{ position: 'relative' }}>
+                    <TouchableOpacity onPress={() => handlePaymentMethodSelect(item)}>
+                      <View
+                        style={[
+                          styles.paymentMethodItem,
+                          selectedPaymentMethod?.id === item.id && styles.selectedPaymentMethodItem,
+                          { width: 160, height: 90 },
+                        ]}
+                      >
+                        <Text style={styles.paymentMethodText}>{item.name}</Text>
+                        {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
+                          <Text style={styles.registeredText}>등록 완료</Text>
+                        )}
+                        {!['KakaoPay', 'TossPay'].includes(item.type) && !item.isRegistered && (
+                          <Text style={styles.registerText}>등록 필요</Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                    {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
+                      <IconButton
+                        icon="delete"
+                        size={20}
+                        color="red"
+                        onPress={() => handleDeletePaymentMethod(item.id)}
+                        style={{
+                          position: 'absolute',
+                          top: 0, // **수정: 위치 조정**
+                          right: 0, // **수정: 위치 조정**
+                        }}
+                      />
+                    )}
+                  </View>
                 )}
                 scrollEnabled={false}
               />
