@@ -49,7 +49,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   // 장바구니 총 금액 계산 (unitPrice 사용)
   const getSubtotal = () => 
-    cartItems.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    cartItems.reduce((sum, item) => sum + (item.totalPrice * item.quantity), 0);
 
   // 쿠폰에 따른 할인 금액 계산
   const getDiscountAmount = (subtotal, coupon) => {
@@ -181,7 +181,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
             item.syrup ? '시럽 추가 O' : '샷 추가 X',
           ].filter(Boolean),
           quantity: item.quantity.toString(),
-          total: (item.unitPrice * item.quantity).toString(),
+          total: (item.totalPrice * item.quantity).toString(),
         })),
         createdAt: moment().unix().toString(),
         updatedAt: moment().unix().toString(),

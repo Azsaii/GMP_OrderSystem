@@ -11,7 +11,7 @@ const formatNumber = (num) => (num ? num.toString().replace(/\B(?=(\d{3})+(?!\d)
 // 개별 장바구니 아이템을 표시하는 컴포넌트
 const CartItem = ({ item }) => {
   const quantity = item.quantity || 1; // 기본값을 1로 설정
-  const unitPrice = item.unitPrice || 0; // unitPrice를 사용하여 가격 참조
+  const unitPrice = item.totalPrice || 0; // unitPrice를 사용하여 가격 참조 에서 totalPrice으로 변경
   const totalPrice = unitPrice * quantity;
 
   return (
