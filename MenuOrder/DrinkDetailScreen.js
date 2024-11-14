@@ -1,17 +1,38 @@
 import React, { useState } from 'react';
 import { ScrollView, View, Text, Image, StyleSheet, TouchableOpacity, SafeAreaView, Alert, ActivityIndicator } from 'react-native';
 import { RadioButton } from 'react-native-paper';
-import { useSelector } from 'react-redux'; // Redux의 useSelector 가져오기
+import { useSelector } from 'react-redux';
 
 const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
   const { item } = route.params;
   const [temperature, setTemperature] = useState('HOT');
   const [size, setSize] = useState('톨');
   const [extraShot, setExtraShot] = useState(false);
-  const [quantity, setQuantity] = useState(1); // 수량 상태 추가
-  const [imageLoading, setImageLoading] = useState(true); // 이미지 로딩 상태 추가
+  const [quantity, setQuantity] = useState(1);
+  const [imageLoading, setImageLoading] = useState(true);
 
-  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
+  const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
+
+  // 총 가격 계산 함수 (수량은 고려하지 않음)
+  const calculateTotalPrice = () => {
+    const unitPrice = parseInt(item.price, 10) || 0;
+    let extraCost = 0;
+
+    // 샷 추가 비용
+    if (extraShot) {
+      extraCost += 500; // 샷 추가 가격
+    }
+
+    // 사이즈에 따른 추가 가격
+    if (size === '그란데') {
+      extraCost += 500;
+    } else if (size === '벤티') {
+      extraCost += 1000;
+    }
+
+    // 최종 가격 계산 (수량은 고려하지 않음)
+    return unitPrice + extraCost;
+  };
 
   const handleAddToCart = () => {
     if (!isLoggedIn) {
@@ -25,7 +46,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       return;
     }
 
-    const unitPrice = parseInt(item.price, 10) || 0;
+    const totalPrice = calculateTotalPrice(); // 최종 가격 계산
 
     addToCart({
       id: item.id,
@@ -35,7 +56,8 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
       size,
       extraShot,
       quantity, // 수량 추가
-      unitPrice, // 가격 추가
+      unitPrice: parseInt(item.price, 10) || 0,
+      totalPrice // totalPrice 추가
     });
     Alert.alert(
       '장바구니에 담기',
@@ -120,22 +142,26 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         <View style={styles.quantityContainer}>
           <TouchableOpacity 
             style={styles.quantityButton} 
-            onPress={() => setQuantity(Math.max(1, quantity - 1))} // 수량 감소
+            onPress={() => setQuantity(Math.max(1, quantity - 1))}
           >
             <Text style={styles.quantityButtonText}>-</Text>
           </TouchableOpacity>
           <Text style={styles.quantityText}>{quantity}</Text>
           <TouchableOpacity 
             style={styles.quantityButton} 
-            onPress={() => setQuantity(quantity + 1)} // 수량 증가
+            onPress={() => setQuantity(quantity + 1)}
           >
             <Text style={styles.quantityButtonText}>+</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
-      <TouchableOpacity style={styles.orderButton} onPress={handleAddToCart}>
-        <Text style={styles.orderButtonText}>장바구니에 담기</Text>
-      </TouchableOpacity>
+      <View>
+        {/* 금액 표시 */}
+        <Text style={styles.priceText}>가격: {calculateTotalPrice() * quantity} 원</Text>
+        <TouchableOpacity style={styles.orderButton} onPress={handleAddToCart}>
+          <Text style={styles.orderButtonText}>장바구니에 담기</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -167,6 +193,12 @@ const styles = StyleSheet.create({
   },
   detailDescription: {
     fontSize: 16,
+    textAlign: 'center',
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 10,
     textAlign: 'center',
   },
   radioGroup: {

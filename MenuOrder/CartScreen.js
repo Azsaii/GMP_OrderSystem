@@ -18,6 +18,25 @@ const groupCartItems = (cartItems) => {
   return Object.values(groupedItems);
 };
 
+// 가격 계산 함수
+const calculatePrice = (basePrice, quantity, extraShot, size) => {
+  let extraCost = 0;
+
+  // 샷 추가 비용
+  if (extraShot) {
+    extraCost += 500; // 샷 추가 시 500원 추가
+  }
+
+  // 사이즈에 따른 추가 비용
+  if (size === '그란데') {
+    extraCost += 500; // 그란데 시 500원 추가
+  } else if (size === '벤티') {
+    extraCost += 1000; // 벤티 시 1000원 추가
+  }
+
+  return (basePrice + extraCost) * quantity; // 최종 가격 계산
+};
+
 const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
   const groupedCartItems = groupCartItems(cartItems); // 그룹화된 장바구니 아이템
   const [modalVisible, setModalVisible] = useState(false); // 모달 상태
@@ -29,34 +48,36 @@ const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
         {groupedCartItems.length === 0 ? (
           <Text style={styles.emptyCart}>장바구니가 비어 있습니다.</Text>
         ) : (
-          groupedCartItems.map((item, index) => (
-            <View key={index} style={styles.cartItem}>
-              <ImageLoader uri={item.image} />
-              <View style={styles.cartDetails}>
-                <Text>{item.name}</Text>
-                {item.temperature ? ( // 온도 옵션이 있으면 drink, 없으면 dessert로 표시
-                  <>
-                    <Text>온도: {item.temperature}</Text>
-                    <Text>사이즈: {item.size}</Text>
-                    <Text>샷 추가: {item.extraShot ? '예' : '아니요'}</Text>
-                    <Text>수량: {item.quantity}</Text>
-                    <Text>가격: {item.unitPrice * item.quantity}</Text>
-                  </>
-                ) : (
-                  <>
-                    <Text>수량: {item.quantity}</Text>
-                    <Text>가격: {item.unitPrice * item.quantity}</Text>
-                  </>
-                )}
+          groupedCartItems.map((item, index) => {
+            return (
+              <View key={index} style={styles.cartItem}>
+                <ImageLoader uri={item.image} />
+                <View style={styles.cartDetails}>
+                  <Text>{item.name}</Text>
+                  {item.temperature ? ( // 온도 옵션이 있으면 drink, 없으면 dessert로 표시
+                    <>
+                      <Text>온도: {item.temperature}</Text>
+                      <Text>사이즈: {item.size}</Text>
+                      <Text>샷 추가: {item.extraShot ? '예' : '아니요'}</Text>
+                      <Text>수량: {item.quantity}</Text>
+                      <Text>가격: {item.totalPrice * item.quantity} 원</Text>
+                    </>
+                  ) : (
+                    <>
+                      <Text>수량: {item.quantity}</Text>
+                      <Text>가격: {item.totalPrice * item.quantity} 원</Text>
+                    </>
+                  )}
+                </View>
+                <TouchableOpacity 
+                  style={styles.removeButton} 
+                  onPress={() => removeFromCart(item)} // 아이템 제거
+                >
+                  <Text style={styles.removeButtonText}>X</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity 
-                style={styles.removeButton} 
-                onPress={() => removeFromCart(item)} // 아이템 제거
-              >
-                <Text style={styles.removeButtonText}>X</Text>
-              </TouchableOpacity>
-            </View>
-          ))
+            );
+          })
         )}
       </ScrollView>
       <TouchableOpacity 
@@ -64,7 +85,6 @@ const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
         onPress={() => {
           if (groupedCartItems.length === 0) {
             setModalVisible(true); // 모달 표시
-            // alert('장바구니에 담긴 상품이 없습니다.');
             return;
           }
           navigation.navigate('Checkout', { cartItems: groupedCartItems }); // CheckoutScreen으로 이동
