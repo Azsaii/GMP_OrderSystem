@@ -1,5 +1,4 @@
 // App.js
-
 import React, { useState } from 'react';
 import {
   Provider as ReduxProvider,
@@ -9,8 +8,8 @@ import {
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import store, { setLoggedIn } from './state';
-import Login from './Login';
-import SignUp from './SignUp';
+import Login from './Auth/Login';
+import SignUp from './Auth/SignUp';
 import MenuTab from './MenuOrder/MenuTab';
 import CartScreen from './MenuOrder/CartScreen';
 import DrinkDetailScreen from './MenuOrder/DrinkDetailScreen';

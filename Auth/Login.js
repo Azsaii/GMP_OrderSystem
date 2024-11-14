@@ -2,10 +2,10 @@ import React, { useState } from 'react';
 import { Button, Alert } from 'react-native';
 import styled from 'styled-components/native';
 import { useDispatch } from 'react-redux';
-import { auth } from './firebaseConfig';
+import { auth } from '../firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
-import { setLoggedIn, setUserEmail, setUserName } from './state';
-import ErrorModal from './ErrorModal';
+import { setLoggedIn, setUserEmail, setUserName } from '../state';
+import ErrorModal from '../ErrorModal';
 
 const Container = styled.View`
   flex: 1;

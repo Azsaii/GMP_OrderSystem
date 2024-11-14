@@ -2,7 +2,7 @@
 
 import React, { createContext, useState, useEffect } from 'react';
 import { auth, firestore } from '../../firebaseConfig';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, onSnapshot } from 'firebase/firestore';
 
 export const UserContext = createContext();
 
@@ -13,59 +13,49 @@ export const UserProvider = ({ children }) => {
   const [userId, setUserId] = useState(null);
   const [userName, setUserName] = useState('Unknown'); // 사용자 이름 상태 추가
 
-  // 사용자 데이터 가져오기
-  const fetchUserData = async (uid) => {
-    try {
-      const userDocRef = doc(firestore, 'users', uid);
-      const userDoc = await getDoc(userDocRef);
-      if (userDoc.exists()) {
-        const data = userDoc.data();
-        setPoints(data.points || 0);
-        setCoupons(data.coupons || []);
-        setPaymentMethods(data.paymentMethods || []);
-        setUserName(data.name || 'Unknown'); // 사용자 이름 설정
-      } else {
-        // 사용자 문서가 없을 경우 초기 데이터 생성
-        const initialData = {
-          name: '사용자이름', // 실제 사용자 이름으로 대체
-          points: 5000,
-          coupons: [
-            { id: 'c1', name: '10,000원 이상 3,000원 할인', discount: 3000, minAmount: 10000, used: false },
-            { id: 'c2', name: '20,000원 이상 50% 할인', discountRate: 0.5, minAmount: 20000, used: false },
-          ],
-          paymentMethods: [
-            { id: 'p1', type: 'Card', name: '카드', isRegistered: false },
-            { id: 'p2', type: 'Account', name: '계좌', isRegistered: false },
-            { id: 'p3', type: 'KakaoPay', name: '카카오페이', isRegistered: true },
-            { id: 'p4', type: 'TossPay', name: '토스페이', isRegistered: true },
-          ],
-        };
-        await setDoc(userDocRef, initialData);
-        setPoints(initialData.points);
-        setCoupons(initialData.coupons);
-        setPaymentMethods(initialData.paymentMethods);
-        setUserName(initialData.name); // 사용자 이름 설정
+  // 실시간으로 사용자 데이터 감지
+  const fetchUserData = (uid) => {
+    const userDocRef = doc(firestore, 'users', uid);
+    const unsubscribe = onSnapshot(
+      userDocRef,
+      (docSnap) => {
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          setPoints(data.points || 0);
+          setCoupons(data.coupons || []);
+          setPaymentMethods(data.paymentMethods || []);
+          setUserName(data.name || 'Unknown');
+        } else {
+          console.error('사용자 문서가 존재하지 않습니다.');
+        }
+      },
+      (error) => {
+        console.error('실시간 사용자 데이터 감지 오류:', error);
       }
-    } catch (error) {
-      console.error('사용자 데이터 가져오기 오류:', error);
-    }
+    );
+
+    return unsubscribe;
   };
 
-  // 인증 상태 변화 감지
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    let unsubscribe;
+    const authUnsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
         setUserId(user.uid);
-        fetchUserData(user.uid);
+        unsubscribe = fetchUserData(user.uid);
       } else {
         setUserId(null);
         setPoints(0);
         setCoupons([]);
         setPaymentMethods([]);
         setUserName('Unknown');
+        if (unsubscribe) unsubscribe();
       }
     });
-    return () => unsubscribe();
+    return () => {
+      authUnsubscribe();
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // 포인트 업데이트 함수
@@ -73,19 +63,29 @@ export const UserProvider = ({ children }) => {
     setPoints(newPoints);
     if (userId) {
       const userDocRef = doc(firestore, 'users', userId);
-      await updateDoc(userDocRef, { points: newPoints });
+      try {
+        await updateDoc(userDocRef, { points: newPoints });
+      } catch (error) {
+        console.error('포인트 업데이트 오류:', error);
+      }
     }
   };
 
   // 쿠폰 사용 처리 함수
-  const markCouponAsUsed = async (couponId) => {
+  const markCouponsAsUsed = async (couponIdentifiers) => {
     const updatedCoupons = coupons.map((coupon) =>
-      coupon.id === couponId ? { ...coupon, used: true } : coupon
+      couponIdentifiers.includes(`${coupon.name}_${coupon.discountType}`)
+        ? { ...coupon, isUsed: true }
+        : coupon
     );
     setCoupons(updatedCoupons);
     if (userId) {
       const userDocRef = doc(firestore, 'users', userId);
-      await updateDoc(userDocRef, { coupons: updatedCoupons });
+      try {
+        await updateDoc(userDocRef, { coupons: updatedCoupons });
+      } catch (error) {
+        console.error('쿠폰 사용 처리 오류:', error);
+      }
     }
   };
 
@@ -95,7 +95,11 @@ export const UserProvider = ({ children }) => {
     setPoints(newPoints);
     if (userId) {
       const userDocRef = doc(firestore, 'users', userId);
-      await updateDoc(userDocRef, { points: newPoints });
+      try {
+        await updateDoc(userDocRef, { points: newPoints });
+      } catch (error) {
+        console.error('포인트 적립 오류:', error);
+      }
     }
   };
 
@@ -114,7 +118,11 @@ export const UserProvider = ({ children }) => {
 
     if (userId) {
       const userDocRef = doc(firestore, 'users', userId);
-      await updateDoc(userDocRef, { paymentMethods: updatedMethods });
+      try {
+        await updateDoc(userDocRef, { paymentMethods: updatedMethods });
+      } catch (error) {
+        console.error('결제 수단 추가 오류:', error);
+      }
     }
   };
 
@@ -124,9 +132,9 @@ export const UserProvider = ({ children }) => {
         points,
         coupons,
         paymentMethods,
-        userName, // 사용자 이름 제공
+        userName,
         updatePoints,
-        markCouponAsUsed,
+        markCouponsAsUsed,
         addPoints,
         addPaymentMethod,
       }}
