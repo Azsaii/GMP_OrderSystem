@@ -128,8 +128,19 @@ export const UserProvider = ({ children }) => {
 
   // 결제 수단을 삭제하는 함수 (isRegistered를 false로 설정)
   const unregisterPaymentMethod = async (methodId) => {
+    const typeToKoreanName = {
+      Card: '카드',
+      Account: '계좌',
+    };
+
     const updatedMethods = paymentMethods.map((method) =>
-      method.id === methodId ? { ...method, isRegistered: false } : method
+      method.id === methodId
+        ? { 
+            ...method, 
+            isRegistered: false,
+            name: typeToKoreanName[method.type] || method.type
+          } 
+        : method
     );
     setPaymentMethods(updatedMethods);
 
@@ -138,10 +149,11 @@ export const UserProvider = ({ children }) => {
       try {
         await updateDoc(userDocRef, { paymentMethods: updatedMethods });
       } catch (error) {
-        console.error('결제 수단 비등록 오류:', error);
+        console.error('결제 수단 삭제 오류:', error);
       }
     }
   };
+  
 
   return (
     <UserContext.Provider
