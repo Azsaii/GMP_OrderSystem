@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import { View, Platform, ToastAndroid, Alert } from 'react-native';
 import {
   Dialog,
@@ -72,6 +72,31 @@ const PaymentMethodModal = ({
     
     setCardInfo({ ...cardInfo, expiryDate: formattedExpiry });
   };
+
+  // 모달 실행시 상태 초기화 (결제수단 삭제 시 기존 입력내용도 삭제)
+  useEffect(() => {
+    if (visible) {
+      // 카드 정보 초기화
+      setCardInfo({
+        cardNumber: ['', '', '', ''],
+        expiryDate: '',
+        cvc: '',
+        password: '',
+        birthdate: '',
+        nickname: '',
+      });
+
+      // 계좌 정보 초기화
+      setAccountInfo({
+        bankName: '',
+        accountNumber: '',
+        password: '',
+        nickname: '',
+      });
+
+      setBankMenuVisible(false);
+    }
+  }, [visible]);
 
   // 결제 수단 등록 함수
   const registerPaymentMethod = async () => {

@@ -9,6 +9,12 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
 
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn); // 로그인 상태 가져오기
 
+  // 총 가격 계산 함수
+  const calculateTotalPrice = () => {
+    const unitPrice = parseInt(item.price, 10) || 0;
+    return unitPrice; // 총 가격 계산
+  };
+
   const handleAddToCart = () => {
     if (!isLoggedIn) {
       Alert.alert(
@@ -21,8 +27,8 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
       return;
     }
 
-    // Firestore에서 가져온 price가 문자열이라서 숫자로 변환
     const unitPrice = parseInt(item.price, 10) || 0;
+    const totalPrice = calculateTotalPrice(); // 총 가격 계산
 
     addToCart({
       id: item.id,
@@ -30,6 +36,7 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
       image: item.image_url,
       quantity, // 수량 추가
       unitPrice, // 가격 추가
+      totalPrice, // 총 가격 추가
     });
     Alert.alert(
       '장바구니에 담기',
@@ -60,6 +67,8 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
         <Text style={styles.detailText}>{item.name}</Text>
         <Text style={styles.detailDescription}>{item.description}</Text>
 
+        
+
         {/* 수량 선택 */}
         <Text>수량:</Text>
         <View style={styles.quantityContainer}>
@@ -78,9 +87,14 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <View>
+        {/* 가격 표시 */}
+        <Text style={styles.priceText}>가격: {calculateTotalPrice() * quantity} 원</Text>
       <TouchableOpacity style={styles.orderButton} onPress={handleAddToCart}>
         <Text style={styles.orderButtonText}>장바구니에 담기</Text>
       </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -115,6 +129,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
     marginBottom: 20, // 설명과 수량 선택 사이의 간격 추가
+  },
+  priceText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginVertical: 10,
+    textAlign: 'center', // 가격 센터 정렬
   },
   quantityContainer: {
     flexDirection: 'row',
