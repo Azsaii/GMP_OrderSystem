@@ -1,4 +1,4 @@
-import React, { useState, useRef, useContext } from 'react';
+import React, { useState, useRef, useContext, useEffect } from 'react';
 import { View, Platform, ToastAndroid, Alert } from 'react-native';
 import {
   Dialog,
@@ -73,6 +73,31 @@ const PaymentMethodModal = ({
     setCardInfo({ ...cardInfo, expiryDate: formattedExpiry });
   };
 
+  // 모달 실행시 상태 초기화 (결제수단 삭제 시 기존 입력내용도 삭제)
+  useEffect(() => {
+    if (visible) {
+      // 카드 정보 초기화
+      setCardInfo({
+        cardNumber: ['', '', '', ''],
+        expiryDate: '',
+        cvc: '',
+        password: '',
+        birthdate: '',
+        nickname: '',
+      });
+
+      // 계좌 정보 초기화
+      setAccountInfo({
+        bankName: '',
+        accountNumber: '',
+        password: '',
+        nickname: '',
+      });
+
+      setBankMenuVisible(false);
+    }
+  }, [visible]);
+
   // 결제 수단 등록 함수
   const registerPaymentMethod = async () => {
     if (selectedPaymentType === 'Card') {
@@ -115,7 +140,7 @@ const PaymentMethodModal = ({
       const newCardMethod = {
         id: 'p1',
         type: 'Card',
-        name: cardInfo.nickname || '등록된 카드',
+        name: cardInfo.nickname ? `카드(${cardInfo.nickname})` : '카드',
         details: {
           cardNumber: cardInfo.cardNumber.join(''),
           expiryDate: cardInfo.expiryDate,
@@ -152,7 +177,7 @@ const PaymentMethodModal = ({
       const newAccountMethod = {
         id: 'p2',
         type: 'Account',
-        name: accountInfo.nickname || '등록된 계좌',
+        name: accountInfo.nickname ? `계좌(${accountInfo.nickname})` : '계좌',
         details: {
           bankName: accountInfo.bankName,
           accountNumber: accountInfo.accountNumber,
