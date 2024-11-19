@@ -140,7 +140,7 @@ const PaymentMethodModal = ({
       const newCardMethod = {
         id: 'p1',
         type: 'Card',
-        name: cardInfo.nickname || '등록된 카드',
+        name: cardInfo.nickname ? `카드(${cardInfo.nickname})` : '카드',
         details: {
           cardNumber: cardInfo.cardNumber.join(''),
           expiryDate: cardInfo.expiryDate,
@@ -177,7 +177,7 @@ const PaymentMethodModal = ({
       const newAccountMethod = {
         id: 'p2',
         type: 'Account',
-        name: accountInfo.nickname || '등록된 계좌',
+        name: accountInfo.nickname ? `계좌(${accountInfo.nickname})` : '계좌',
         details: {
           bankName: accountInfo.bankName,
           accountNumber: accountInfo.accountNumber,

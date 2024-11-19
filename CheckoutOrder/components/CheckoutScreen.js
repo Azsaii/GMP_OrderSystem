@@ -199,66 +199,78 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       return;
     }
 
-    const earnedPoints = Math.ceil(total * 0.02);
-
-    setIsProcessing(true);
-
-    try {
-      // 쿠폰 사용 처리
-      if (selectedCoupons.length > 0) {
-        const usedCouponIdentifiers = selectedCoupons.map(
-          (coupon) => `${coupon.name}_${coupon.discountType}` // 고유 식별자 생성
-        );
-        await markCouponsAsUsed(usedCouponIdentifiers); // markCouponsAsUsed 호출
-        setSelectedCoupons([]);
-      }
-
-      // 포인트 차감 및 적립 계산
-      const newPoints = availablePoints - usedPoints + earnedPoints;
-      await updatePoints(newPoints);
-
-      // 주문 정보 Firestore에 저장
-      await saveOrderToFirestore({
-        customerId: auth.currentUser.uid,
-        customerName: userName || 'Unknown',
-        menuList: cartItems.map((item) => ({
-          menuId: item.id.toString(),
-          menuName: item.name,
-          options: [
-            item.size || '사이즈 설정 X',
-            item.temperature || '온도 설정 X',
-            item.extraShot ? '샷 추가 O' : '샷 추가 X',
-          ].filter(Boolean),
-          quantity: item.quantity.toString(),
-          price: item.totalPrice.toString(),
-        })),
-        total: getTotal().toString(),
-        createdAt: moment().unix(),
-        updatedAt: moment().unix(),
-        isCompleted: false,
-        isStarted: false,
-      });
-
-      // 결제 완료 후 알림
-      Alert.alert(
-        '결제 완료',
-        `결제가 완료되었습니다.\n적립된 포인트: ${earnedPoints}점`,
-        [
-          {
-            text: '확인',
-            onPress: () => {
-              onClearCart();
-              navigation.navigate('Home');
-            },
-          },
-        ]
-      );
-    } catch (error) {
-      console.error('결제 처리 중 오류:', error);
-      Alert.alert('결제 실패', '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsProcessing(false);
-    }
+    Alert.alert(
+      '결제 확인',
+      `결제하시겠습니까?\n결제 금액: ${formatNumber(total)}원`,
+      [
+        { text: '취소', style: 'cancel' },
+        { 
+          text: '확인', 
+          onPress: async () => {
+            setIsProcessing(true);
+  
+            try {
+              // 쿠폰 사용 처리
+              if (selectedCoupons.length > 0) {
+                const usedCouponIdentifiers = selectedCoupons.map(
+                  (coupon) => `${coupon.name}_${coupon.discountType}` // 고유 식별자 생성
+                );
+                await markCouponsAsUsed(usedCouponIdentifiers); // markCouponsAsUsed 호출
+                setSelectedCoupons([]);
+              }
+  
+              // 포인트 차감 및 적립 계산
+              const earnedPoints = Math.ceil(total * 0.02);
+              const newPoints = availablePoints - usedPoints + earnedPoints;
+              await updatePoints(newPoints);
+  
+              // 주문 정보 Firestore에 저장
+              await saveOrderToFirestore({
+                customerId: auth.currentUser.uid,
+                customerName: userName || 'Unknown',
+                menuList: cartItems.map((item) => ({
+                  menuId: item.id.toString(),
+                  menuName: item.name,
+                  options: [
+                    item.size || '사이즈 설정 X',
+                    item.temperature || '온도 설정 X',
+                    item.extraShot ? '샷 추가 O' : '샷 추가 X',
+                  ].filter(Boolean),
+                  quantity: item.quantity.toString(),
+                  price: item.totalPrice.toString(),
+                })),
+                total: total.toString(),
+                createdAt: moment().unix(),
+                updatedAt: moment().unix(),
+                isCompleted: false,
+                isStarted: false,
+              });
+  
+              // 결제 완료 후 알림
+              Alert.alert(
+                '결제 완료',
+                `결제가 완료되었습니다.\n적립된 포인트: ${earnedPoints}점`,
+                [
+                  {
+                    text: '확인',
+                    onPress: () => {
+                      onClearCart();
+                      navigation.navigate('Home');
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error('결제 처리 중 오류:', error);
+              Alert.alert('결제 실패', '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.');
+            } finally {
+              setIsProcessing(false);
+            }
+          }
+        }
+      ],
+      { cancelable: false }
+    );
   };
 
   // 주문 정보를 Firestore에 저장하는 함수
