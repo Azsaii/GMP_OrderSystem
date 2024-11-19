@@ -107,22 +107,22 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     }
   };
 
-  // 결제 수단 삭제(비등록) 함수
+  // 결제 수단 삭제 함수
   const handleDeletePaymentMethod = (methodId) => {
     Alert.alert(
-      '결제 수단 비등록',
-      '해당 결제 수단을 비등록하시겠습니까?',
+      '결제 수단 삭제',
+      '해당 결제 수단을 삭제하시겠습니까?',
       [
         { text: '취소', style: 'cancel' },
         {
-          text: '비등록',
+          text: '삭제',
           style: 'destructive',
           onPress: () => {
             unregisterPaymentMethod(methodId);
             if (selectedPaymentMethod?.id === methodId) {
-              setSelectedPaymentMethod(null); // 비등록된 결제 수단이 선택되어 있으면 선택 해제
+              setSelectedPaymentMethod(null); // 삭제된 결제 수단이 선택되어 있으면 선택 해제
             }
-            showToast('결제 수단이 비등록되었습니다.');
+            showToast('결제 수단이 삭제되었습니다.');
           },
         },
       ]
