@@ -42,9 +42,25 @@ const MenuTab = ({ navigation, category }) => {
     }
   };
 
+  // 장바구니 버튼 클릭 시 실행되는 함수
   const handleCartNavigation = () => {
     if (isLoggedIn) {
       navigation.navigate('Cart'); // 로그인 상태일 때 장바구니로 이동
+    } else {
+      Alert.alert(
+        '로그인 필요',
+        '로그인을 먼저 해주세요.',
+        [
+          { text: '확인', onPress: () => navigation.navigate('Login') } // 로그인 화면으로 이동
+        ]
+      );
+    }
+  };
+
+  // 주문내역 버튼 클릭 시 실행되는 함수
+  const handleOrderDetailsNavigation = () => {
+    if (isLoggedIn) {
+      navigation.navigate('UserScreen'); // 로그인 상태일 때 주문 내역 화면으로 이동
     } else {
       Alert.alert(
         '로그인 필요',
@@ -109,9 +125,7 @@ const MenuTab = ({ navigation, category }) => {
         <TouchableOpacity style={styles.orderButton} onPress={handleCartNavigation}>
           <Text style={styles.orderButtonText}>장바구니</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.orderButton} onPress={() => {
-          navigation.navigate('UserScreen'); //주문 내역 화면으로 이동
-        }}>
+        <TouchableOpacity style={styles.orderButton} onPress={handleOrderDetailsNavigation}>
           <Text style={styles.orderButtonText}>주문내역</Text>
         </TouchableOpacity>
       </View>

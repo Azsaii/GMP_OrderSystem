@@ -29,9 +29,9 @@ const calculatePrice = (basePrice, quantity, extraShot, size) => {
 
   // 사이즈에 따른 추가 비용
   if (size === '그란데') {
-    extraCost += 500; // 그란데 시 500원 추가
+    extraCost += 500; // 그란데 사이즈 선택 시 500원 추가
   } else if (size === '벤티') {
-    extraCost += 1000; // 벤티 시 1000원 추가
+    extraCost += 1000; // 벤티 사이즈 선택 시 1000원 추가
   }
 
   return (basePrice + extraCost) * quantity; // 최종 가격 계산
