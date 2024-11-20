@@ -1,4 +1,4 @@
-// CheckoutOrder/components/CheckoutScreen.js
+// CheckoutScreen.js
 
 import React, { useState, useContext, useEffect } from 'react';
 import {
@@ -13,7 +13,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import { Card, Divider, Portal, TextInput as PaperTextInput, IconButton } from 'react-native-paper'; // IconButton 추가
+import { Card, Divider, Portal, TextInput as PaperTextInput, IconButton } from 'react-native-paper';
 import CartItem from './CartItem';
 import CouponModal from './CouponModal';
 import PaymentMethodModal from './PaymentMethodModal';
@@ -35,15 +35,15 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     paymentMethods,
     updatePoints,
     markCouponsAsUsed,
-    unregisterPaymentMethod, // **추가: unregisterPaymentMethod 가져오기**
+    unregisterPaymentMethod,
     userName,
     addPaymentMethod,
-  } = useContext(UserContext); // markCouponsAsUsed 포함
+  } = useContext(UserContext);
 
   const [couponModalVisible, setCouponModalVisible] = useState(false);
   const [paymentModalVisible, setPaymentModalVisible] = useState(false);
   const [couponRegistrationModalVisible, setCouponRegistrationModalVisible] = useState(false);
-  const [selectedCoupons, setSelectedCoupons] = useState([]); // 다중 쿠폰 선택
+  const [selectedCoupons, setSelectedCoupons] = useState([]);
   const [usedPoints, setUsedPoints] = useState(0);
   const [pointInput, setPointInput] = useState('');
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
@@ -54,15 +54,15 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   const getSubtotal = () =>
     cartItems.reduce((sum, item) => sum + item.totalPrice * item.quantity, 0);
 
-  // 쿠폰에 따른 할인 금액 계산 (고정 금액 할인 먼저 적용)
+  // 쿠폰에 따른 할인 금액 계산
   const getTotalDiscount = () => {
     let totalDiscount = 0;
     const subtotal = getSubtotal();
-    let remainingSubtotal = subtotal; // 할인 적용 후 남은 금액
+    let remainingSubtotal = subtotal;
 
     // 고정 금액 할인 먼저 적용
     const fixedCoupons = selectedCoupons.filter(coupon => coupon.discountType === '원');
-    fixedCoupons.forEach((coupon) => {
+    fixedCoupons.forEach(coupon => {
       if (remainingSubtotal < coupon.minOrderValue) return;
 
       const discount = Math.min(coupon.discountValue, coupon.maxDiscountValue || coupon.discountValue);
@@ -72,7 +72,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
     // 퍼센트 할인 나중에 적용
     const percentCoupons = selectedCoupons.filter(coupon => coupon.discountType === '%');
-    percentCoupons.forEach((coupon) => {
+    percentCoupons.forEach(coupon => {
       if (remainingSubtotal < coupon.minOrderValue) return;
 
       const calculatedDiscount = Math.floor((remainingSubtotal * coupon.discountValue) / 100);
@@ -120,7 +120,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           onPress: () => {
             unregisterPaymentMethod(methodId);
             if (selectedPaymentMethod?.id === methodId) {
-              setSelectedPaymentMethod(null); // 삭제된 결제 수단이 선택되어 있으면 선택 해제
+              setSelectedPaymentMethod(null);
             }
             showToast('결제 수단이 삭제되었습니다.');
           },
@@ -208,22 +208,22 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           text: '확인', 
           onPress: async () => {
             setIsProcessing(true);
-  
+
             try {
               // 쿠폰 사용 처리
               if (selectedCoupons.length > 0) {
                 const usedCouponIdentifiers = selectedCoupons.map(
-                  (coupon) => `${coupon.name}_${coupon.discountType}` // 고유 식별자 생성
+                  (coupon) => `${coupon.name}_${coupon.discountType}`
                 );
-                await markCouponsAsUsed(usedCouponIdentifiers); // markCouponsAsUsed 호출
+                await markCouponsAsUsed(usedCouponIdentifiers);
                 setSelectedCoupons([]);
               }
-  
+
               // 포인트 차감 및 적립 계산
               const earnedPoints = Math.ceil(total * 0.02);
               const newPoints = availablePoints - usedPoints + earnedPoints;
               await updatePoints(newPoints);
-  
+
               // 주문 정보 Firestore에 저장
               await saveOrderToFirestore({
                 customerId: auth.currentUser.uid,
@@ -245,7 +245,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                 isCompleted: false,
                 isStarted: false,
               });
-  
+
               // 결제 완료 후 알림
               Alert.alert(
                 '결제 완료',
@@ -314,6 +314,46 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   }, [paymentMethods]);
   */
 
+  // 각 쿠폰별 할인 금액을 계산하는 로직
+  const calculateAppliedCoupons = () => {
+    let subtotal = getSubtotal();
+    let remainingSubtotal = subtotal;
+    let totalDiscount = 0;
+    const appliedCoupons = [];
+
+    // 고정 금액 할인 먼저 적용
+    const fixedCoupons = selectedCoupons.filter(coupon => coupon.discountType === '원');
+    fixedCoupons.forEach(coupon => {
+      if (remainingSubtotal >= coupon.minOrderValue) {
+        const discount = Math.min(coupon.discountValue, coupon.maxDiscountValue || coupon.discountValue);
+        appliedCoupons.push({ coupon, discount });
+        totalDiscount += discount;
+        remainingSubtotal -= discount;
+      }
+    });
+
+    // 퍼센트 할인 나중에 적용
+    const percentCoupons = selectedCoupons.filter(coupon => coupon.discountType === '%');
+    percentCoupons.forEach(coupon => {
+      if (remainingSubtotal >= coupon.minOrderValue) {
+        const calculatedDiscount = Math.floor((remainingSubtotal * coupon.discountValue) / 100);
+        const discount = Math.min(calculatedDiscount, coupon.maxDiscountValue || calculatedDiscount);
+        appliedCoupons.push({ coupon, discount });
+        totalDiscount += discount;
+        remainingSubtotal -= discount;
+      }
+    });
+
+    // 최종 할인 금액이 subtotal을 초과하지 않도록 조정
+    if (totalDiscount > subtotal) {
+      totalDiscount = subtotal;
+    }
+
+    return appliedCoupons;
+  };
+
+  const appliedCoupons = calculateAppliedCoupons();
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       {/* 주문 내역 표시 */}
@@ -368,7 +408,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                       {coupon.discountType === '원'
                         ? `-${formatNumber(coupon.discountValue)}원 할인`
                         : `-${formatNumber(coupon.discountValue)}% 할인`}
-                      )
+                    )
                     </Text>
                   </View>
                 ))}
@@ -457,8 +497,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                         onPress={() => handleDeletePaymentMethod(item.id)}
                         style={{
                           position: 'absolute',
-                          top: -5, // 우측 위로 약간 이동
-                          right: -5, // 우측 위로 약간 이동
+                          top: -5,
+                          right: -5,
                         }}
                       />
                     )}
@@ -475,11 +515,14 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       <Card style={[styles.totalCard, { backgroundColor: '#f0f0f0' }]}>
         <Card.Content>
           <Text style={styles.totalText}>총 결제 금액: {formatNumber(getTotal())}원</Text>
-          {selectedCoupons.length > 0 && (
-            selectedCoupons.map((coupon) => (
+          {appliedCoupons.length > 0 && (
+            appliedCoupons.map(({ coupon, discount }) => (
               <Text key={`${coupon.name}_${coupon.discountType}`} style={styles.discountText}>
-                {coupon.discountType === '%' ? '쿠폰 할인' : '쿠폰 할인'}: -
-                {coupon.discountType === '%' ? `${formatNumber(coupon.discountValue)}%` : `${formatNumber(coupon.discountValue)}원`}
+                쿠폰 할인: -
+                {coupon.discountType === '%' 
+                  ? `${coupon.discountValue}%` 
+                  : `${formatNumber(coupon.discountValue)}원`}
+                {coupon.discountType === '%' && ` (-${formatNumber(discount)}원)`}
               </Text>
             ))
           )}
@@ -508,8 +551,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
           onDismiss={() => setCouponModalVisible(false)}
           coupons={coupons}
           getSubtotal={getSubtotal}
-          setSelectedCoupons={setSelectedCoupons} // 다중 쿠폰 선택
-          getDiscountAmount={getTotalDiscount} // 다중 할인 계산 함수
+          setSelectedCoupons={setSelectedCoupons}
+          getDiscountAmount={getTotalDiscount}
         />
         <PaymentMethodModal
           visible={paymentModalVisible}
