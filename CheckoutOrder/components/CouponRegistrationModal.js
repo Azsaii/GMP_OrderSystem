@@ -248,6 +248,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
           ) : publicCoupons.length === 0 ? (
             <Text style={styles.noCouponsText}>사용 가능한 쿠폰이 없습니다.</Text>
           ) : (
+            <View style={{ maxHeight: 400 }}>
             <FlatList
               data={publicCoupons}
               keyExtractor={(item) => item.id}
@@ -289,7 +290,9 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
                   </Button>
                 </View>
               )}
+              nestedScrollEnabled
             />
+            </View>
           )
         ) : (
           // 프로모션 코드 입력 페이지
