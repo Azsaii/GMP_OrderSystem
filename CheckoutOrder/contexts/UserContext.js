@@ -8,10 +8,14 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const [points, setPoints] = useState(0);
-  const [coupons, setCoupons] = useState([]);
+
+  // 기존의 coupons 상태를 unusedCoupons와 usedCoupons로 분리하고, 각각 쿠폰 ID의 배열로 저장합니다.
+  const [unusedCoupons, setUnusedCoupons] = useState([]);
+  const [usedCoupons, setUsedCoupons] = useState([]);
+
   const [paymentMethods, setPaymentMethods] = useState([]);
   const [userId, setUserId] = useState(null);
-  const [userName, setUserName] = useState('Unknown'); // 사용자 이름 상태 추가
+  const [userName, setUserName] = useState('Unknown');
 
   // 실시간으로 사용자 데이터 감지
   const fetchUserData = (uid) => {
@@ -22,7 +26,11 @@ export const UserProvider = ({ children }) => {
         if (docSnap.exists()) {
           const data = docSnap.data();
           setPoints(data.points || 0);
-          setCoupons(data.coupons || []);
+
+          // unusedCoupons와 usedCoupons를 Firestore에서 가져와 상태로 설정합니다.
+          setUnusedCoupons(data.unusedCoupons || []);
+          setUsedCoupons(data.usedCoupons || []);
+
           setPaymentMethods(data.paymentMethods || []);
           setUserName(data.name || 'Unknown');
         } else {
@@ -46,7 +54,8 @@ export const UserProvider = ({ children }) => {
       } else {
         setUserId(null);
         setPoints(0);
-        setCoupons([]);
+        setUnusedCoupons([]);
+        setUsedCoupons([]);
         setPaymentMethods([]);
         setUserName('Unknown');
         if (unsubscribe) unsubscribe();
@@ -72,17 +81,21 @@ export const UserProvider = ({ children }) => {
   };
 
   // 쿠폰 사용 처리 함수
-  const markCouponsAsUsed = async (couponIdentifiers) => {
-    const updatedCoupons = coupons.map((coupon) =>
-      couponIdentifiers.includes(`${coupon.name}_${coupon.discountType}`)
-        ? { ...coupon, isUsed: true }
-        : coupon
-    );
-    setCoupons(updatedCoupons);
+  const markCouponsAsUsed = async (couponIds) => {
+    // unusedCoupons에서 사용된 쿠폰 ID를 제거하고 usedCoupons에 추가합니다.
+    const updatedUnusedCoupons = unusedCoupons.filter((id) => !couponIds.includes(id));
+    const updatedUsedCoupons = [...usedCoupons, ...couponIds];
+
+    setUnusedCoupons(updatedUnusedCoupons);
+    setUsedCoupons(updatedUsedCoupons);
+
     if (userId) {
       const userDocRef = doc(firestore, 'users', userId);
       try {
-        await updateDoc(userDocRef, { coupons: updatedCoupons });
+        await updateDoc(userDocRef, {
+          unusedCoupons: updatedUnusedCoupons,
+          usedCoupons: updatedUsedCoupons,
+        });
       } catch (error) {
         console.error('쿠폰 사용 처리 오류:', error);
       }
@@ -159,7 +172,8 @@ export const UserProvider = ({ children }) => {
     <UserContext.Provider
       value={{
         points,
-        coupons,
+        unusedCoupons,
+        usedCoupons,
         paymentMethods,
         userName,
         updatePoints,

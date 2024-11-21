@@ -1,19 +1,62 @@
 // CheckoutOrder/components/CouponModal.js
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableWithoutFeedback, FlatList, Alert } from 'react-native';
 import { Dialog, List, Button, Divider } from 'react-native-paper';
 import styles from '../styles/CheckoutStyles';
+import { firestore } from '../../firebaseConfig';
+import { doc, getDoc } from 'firebase/firestore';
+import moment from 'moment';
 
 const CouponModal = ({
   visible,
   onDismiss,
-  coupons,
+  unusedCoupons, // 수정된 부분: unusedCoupons를 받습니다.
   getSubtotal,
   setSelectedCoupons, // 다중 쿠폰 선택
   getDiscountAmount,
 }) => {
   const [tempSelectedCoupons, setTempSelectedCoupons] = useState([]);
+  const [availableCoupons, setAvailableCoupons] = useState([]);
+
+  // 쿠폰 정보를 Firestore에서 가져옵니다.
+  useEffect(() => {
+    const fetchCoupons = async () => {
+      try {
+        const now = moment().format('YYMMDD');
+        const couponPromises = unusedCoupons.map(async (couponId) => {
+          const couponDocRef = doc(firestore, 'coupon', couponId);
+          const couponDoc = await getDoc(couponDocRef);
+          if (couponDoc.exists()) {
+            const couponData = couponDoc.data();
+            // 유효 기간 및 사용 가능 여부 확인
+            if (
+              couponData.available &&
+              couponData.startDate <= now &&
+              couponData.endDate >= now &&
+              getSubtotal() >= couponData.minOrderValue
+            ) {
+              return { id: couponDoc.id, ...couponData };
+            }
+          }
+          return null;
+        });
+
+        const couponsData = await Promise.all(couponPromises);
+        
+        // 수정된 부분: 'validCoupons' 변수를 정의하여 콘솔 로그에서 참조할 수 있도록 함
+        const validCoupons = couponsData.filter((coupon) => coupon !== null);
+        setAvailableCoupons(validCoupons);
+        console.log('사용 가능한 쿠폰 :', validCoupons); // 수정된 부분: 'validCoupons' 사용
+      } catch (error) {
+        console.error('쿠폰 정보 가져오기 오류:', error);
+      }
+    };
+
+    if (visible) { // 모달이 열릴 때만 쿠폰을 가져오도록 조건 추가
+      fetchCoupons();
+    }
+  }, [unusedCoupons, getSubtotal, visible]); // 'visible' 의존성 추가
 
   const handleCouponSelect = (coupon) => {
     if (coupon.canBeCombined) {
@@ -25,13 +68,13 @@ const CouponModal = ({
       } else {
         // 이미 선택된 쿠폰인지 확인
         const isSelected = tempSelectedCoupons.some(
-          (c) => c.name === coupon.name && c.discountType === coupon.discountType
+          (c) => c.id === coupon.id
         );
         if (isSelected) {
           // 해제
           setTempSelectedCoupons(
             tempSelectedCoupons.filter(
-              (c) => c.name !== coupon.name || c.discountType !== coupon.discountType
+              (c) => c.id !== coupon.id
             )
           );
         } else {
@@ -43,7 +86,7 @@ const CouponModal = ({
       // 결합 불가인 쿠폰 선택 시
       // 모든 기존 선택을 해제하고 해당 쿠폰만 선택
       const isSelected = tempSelectedCoupons.some(
-        (c) => c.name === coupon.name && c.discountType === coupon.discountType
+        (c) => c.id === coupon.id
       );
       if (isSelected) {
         // 해제
@@ -56,13 +99,15 @@ const CouponModal = ({
   };
 
   const handleApplyCoupons = () => {
-    setSelectedCoupons(tempSelectedCoupons);
+    // 선택된 쿠폰의 ID만 저장합니다.
+    const selectedCouponIds = tempSelectedCoupons.map((coupon) => coupon.id);
+    setSelectedCoupons(selectedCouponIds);
     onDismiss();
   };
 
   const renderCouponItem = ({ item }) => {
     const isSelected = tempSelectedCoupons.some(
-      (c) => c.name === item.name && c.discountType === item.discountType
+      (c) => c.id === item.id
     );
     return (
       <TouchableWithoutFeedback onPress={() => handleCouponSelect(item)}>
@@ -114,14 +159,6 @@ const CouponModal = ({
     );
   };
 
-  // 필터링된 쿠폰 목록: 사용되지 않았고, 최소 주문 금액을 만족하며, 사용 가능 상태
-  const availableCoupons = coupons.filter(
-    (coupon) =>
-      !coupon.isUsed &&
-      getSubtotal() >= coupon.minOrderValue &&
-      coupon.available
-  );
-
   return (
     <Dialog visible={visible} onDismiss={onDismiss}>
       <Dialog.Title>쿠폰 선택</Dialog.Title>
@@ -149,4 +186,4 @@ const CouponModal = ({
   );
 };
 
-export default CouponModal;
+export default CouponModal; 

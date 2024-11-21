@@ -33,7 +33,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
   const [promoCode, setPromoCode] = useState('');
   const [loadingPromo, setLoadingPromo] = useState(false);
 
-  const { coupons } = useContext(UserContext); // 사용자 쿠폰 목록
+  const { unusedCoupons, usedCoupons } = useContext(UserContext); // 수정된 부분: unusedCoupons와 usedCoupons를 가져옵니다.
 
   useEffect(() => {
     if (visible) {
@@ -88,13 +88,13 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
   const handleRegisterPublicCoupon = async (coupon) => {
     try {
       // 이미 등록된 쿠폰인지 확인
-      const isAlreadyRegistered = coupons.some((c) => c.id === coupon.id);
+      const isAlreadyRegistered = unusedCoupons.includes(coupon.id) || usedCoupons.includes(coupon.id);
       if (isAlreadyRegistered) {
         Alert.alert('알림', '이미 등록된 쿠폰입니다.');
         return;
       }
 
-      // 사용자 계정에 쿠폰 추가
+      // 사용자 계정에 쿠폰 ID 추가
       const user = auth.currentUser;
       if (!user) {
         Alert.alert('오류', '사용자가 인증되지 않았습니다.');
@@ -103,21 +103,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
 
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, {
-        coupons: arrayUnion({
-          id: coupon.id,
-          name: coupon.name,
-          description: coupon.description,
-          discountType: coupon.discountType,
-          discountValue: coupon.discountValue,
-          minOrderValue: coupon.minOrderValue,
-          maxDiscountValue: coupon.maxDiscountValue,
-          startDate: coupon.startDate,
-          endDate: coupon.endDate,
-          isPublic: coupon.isPublic,
-          canBeCombined: coupon.canBeCombined,
-          available: coupon.available,
-          isUsed: false,
-        }),
+        unusedCoupons: arrayUnion(coupon.id),
       });
 
       console.log(`쿠폰 등록 성공: ${coupon.id}`);
@@ -140,7 +126,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
       const promoCodeTrimmed = promoCode.trim();
       console.log(`입력된 프로모션 코드: ${promoCodeTrimmed}`);
 
-      const promoDocRef = doc(firestore, 'coupon', promoCodeTrimmed); // 'coupon'으로 수정
+      const promoDocRef = doc(firestore, 'coupon', promoCodeTrimmed);
       const promoDocSnapshot = await getDoc(promoDocRef);
 
       if (!promoDocSnapshot.exists()) {
@@ -176,13 +162,13 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
       }
 
       // 이미 등록된 쿠폰인지 확인
-      const isAlreadyRegistered = coupons.some((c) => c.id === coupon.id);
+      const isAlreadyRegistered = unusedCoupons.includes(coupon.id) || usedCoupons.includes(coupon.id);
       if (isAlreadyRegistered) {
         Alert.alert('알림', '이미 등록된 쿠폰입니다.');
         return;
       }
 
-      // 사용자 계정에 쿠폰 추가
+      // 사용자 계정에 쿠폰 ID 추가
       const user = auth.currentUser;
       if (!user) {
         Alert.alert('오류', '사용자가 인증되지 않았습니다.');
@@ -191,21 +177,7 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
 
       const userDocRef = doc(firestore, 'users', user.uid);
       await updateDoc(userDocRef, {
-        coupons: arrayUnion({
-          id: coupon.id,
-          name: coupon.name,
-          description: coupon.description,
-          discountType: coupon.discountType,
-          discountValue: coupon.discountValue,
-          minOrderValue: coupon.minOrderValue,
-          maxDiscountValue: coupon.maxDiscountValue,
-          startDate: coupon.startDate,
-          endDate: coupon.endDate,
-          isPublic: coupon.isPublic,
-          canBeCombined: coupon.canBeCombined,
-          available: coupon.available,
-          isUsed: false,
-        }),
+        unusedCoupons: arrayUnion(coupon.id),
       });
 
       console.log(`프로모션 쿠폰 등록 성공: ${coupon.id}`);
