@@ -87,10 +87,14 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
 
   const handleRegisterPublicCoupon = async (coupon) => {
     try {
-      // 이미 등록된 쿠폰인지 확인
-      const isAlreadyRegistered = unusedCoupons.includes(coupon.id) || usedCoupons.includes(coupon.id);
-      if (isAlreadyRegistered) {
+      // 쿠폰이 이미 등록되었는지 또는 사용되었는지 확인
+      if (unusedCoupons.includes(coupon.id)) {
         Alert.alert('알림', '이미 등록된 쿠폰입니다.');
+        return;
+      }
+
+      if (usedCoupons.includes(coupon.id)) {
+        Alert.alert('알림', '이미 사용된 쿠폰입니다.');
         return;
       }
 
@@ -161,10 +165,14 @@ const CouponRegistrationModal = ({ visible, onDismiss }) => {
         return;
       }
 
-      // 이미 등록된 쿠폰인지 확인
-      const isAlreadyRegistered = unusedCoupons.includes(coupon.id) || usedCoupons.includes(coupon.id);
-      if (isAlreadyRegistered) {
+      // 이미 등록되었는지 또는 사용되었는지 확인
+      if (unusedCoupons.includes(coupon.id)) {
         Alert.alert('알림', '이미 등록된 쿠폰입니다.');
+        return;
+      }
+
+      if (usedCoupons.includes(coupon.id)) {
+        Alert.alert('알림', '이미 사용된 쿠폰입니다.');
         return;
       }
 
