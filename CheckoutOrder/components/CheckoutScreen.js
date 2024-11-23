@@ -500,18 +500,18 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                         ]}
                       >
                         <Text style={styles.paymentMethodText}>{item.name}</Text>
-                        {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
+                        {item.isRegistered && (
                           <Text style={styles.registeredText}>등록 완료</Text>
                         )}
-                        {!['KakaoPay', 'TossPay'].includes(item.type) && !item.isRegistered && (
+                        {!item.isRegistered && (
                           <Text style={styles.registerText}>등록 필요</Text>
                         )}
                       </View>
                     </TouchableOpacity>
                     {/* 삭제 버튼 추가 */}
-                    {!['KakaoPay', 'TossPay'].includes(item.type) && item.isRegistered && (
+                    {item.isRegistered && (
                       <IconButton
-                        icon="delete"
+                        icon="trash-can"
                         size={20}
                         color="red"
                         onPress={() => handleDeletePaymentMethod(item.id)}

@@ -102,10 +102,10 @@ const SignUp = ({ navigation }) => {
         email: email,
         points: 5000,
         paymentMethods: [
-          { id: 'p1', type: 'Card', name: '카드', isRegistered: false },
-          { id: 'p2', type: 'Account', name: '계좌', isRegistered: false },
-          { id: 'p3', type: 'KakaoPay', name: '카카오페이', isRegistered: true },
-          { id: 'p4', type: 'TossPay', name: '토스페이', isRegistered: true },
+          { id: 'p1', type: 'Card', name: '카드1', isRegistered: false },
+          { id: 'p2', type: 'Account', name: '계좌1', isRegistered: false },
+          { id: 'p3', type: 'Card', name: '카드2', isRegistered: false },
+          { id: 'p4', type: 'Account', name: '계좌2', isRegistered: false },
         ],
       };
       await setDoc(userRef, initialData);
