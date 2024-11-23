@@ -232,12 +232,6 @@ const PaymentMethodModal = ({
   return (
     <Dialog visible={visible} onDismiss={onDismiss}>
       <Dialog.Title>결제 수단 등록</Dialog.Title>
-      {/* 모달 닫기 버튼 */}
-      <IconButton
-        icon="close"
-        onPress={onDismiss}
-        style={styles.closeIconButton}
-      />
       <Dialog.Content>
         {selectedPaymentType === 'Card' ? (
           <>
@@ -367,9 +361,14 @@ const PaymentMethodModal = ({
           </>
         )}
       </Dialog.Content>
-      {/* 등록하기 버튼 */}
+      {/* 등록하기, 닫기 버튼 */}
       <Dialog.Actions>
-        <Button onPress={registerPaymentMethod}>등록하기</Button>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Button onPress={onDismiss} style={{ marginRight: 8 }}>
+            닫기
+          </Button>
+          <Button onPress={registerPaymentMethod}>등록하기</Button>
+        </View>
       </Dialog.Actions>
     </Dialog>
   );
