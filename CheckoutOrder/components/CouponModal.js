@@ -11,7 +11,7 @@ import moment from 'moment';
 const CouponModal = ({
   visible,
   onDismiss,
-  unusedCoupons, // 수정된 부분: unusedCoupons를 받습니다.
+  unusedCoupons,
   getSubtotal,
   setSelectedCoupons, // 다중 쿠폰 선택
   getDiscountAmount,
@@ -44,10 +44,10 @@ const CouponModal = ({
 
         const couponsData = await Promise.all(couponPromises);
         
-        // 수정된 부분: 'validCoupons' 변수를 정의하여 콘솔 로그에서 참조할 수 있도록 함
+        // 'validCoupons' 변수를 정의하여 콘솔 로그에서 참조할 수 있도록 함
         const validCoupons = couponsData.filter((coupon) => coupon !== null);
         setAvailableCoupons(validCoupons);
-        console.log('사용 가능한 쿠폰 :', validCoupons); // 수정된 부분: 'validCoupons' 사용
+        console.log('사용 가능한 쿠폰 :', validCoupons); // 'validCoupons' 사용
       } catch (error) {
         console.error('쿠폰 정보 가져오기 오류:', error);
       }
@@ -148,10 +148,9 @@ const CouponModal = ({
               </View>
             }
             left={() => (
-              <List.Icon
-                icon={isSelected ? 'check-circle' : 'checkbox-blank-circle-outline'}
-                color={isSelected ? 'green' : 'grey'}
-              />
+              <Text style={{ fontSize: 24, color: isSelected ? 'green' : 'grey' }}>
+                {isSelected ? '✓' : '○'}
+              </Text>
             )}
           />
         </View>
