@@ -139,33 +139,36 @@ export const UserProvider = ({ children }) => {
     }
   };
 
-  // 결제 수단을 삭제하는 함수 (isRegistered를 false로 설정)
-  const unregisterPaymentMethod = async (methodId) => {
-    const typeToKoreanName = {
-      Card: '카드',
-      Account: '계좌',
-    };
-
-    const updatedMethods = paymentMethods.map((method) =>
-      method.id === methodId
-        ? { 
-            ...method, 
-            isRegistered: false,
-            name: typeToKoreanName[method.type] || method.type
-          } 
-        : method
-    );
-    setPaymentMethods(updatedMethods);
-
-    if (userId) {
-      const userDocRef = doc(firestore, 'users', userId);
-      try {
-        await updateDoc(userDocRef, { paymentMethods: updatedMethods });
-      } catch (error) {
-        console.error('결제 수단 삭제 오류:', error);
-      }
-    }
+  // 결제 수단을 삭제하는 함수 (isRegistered를 false로 설정, firestore 정보 삭제)
+const unregisterPaymentMethod = async (methodId) => {
+  const typeToKoreanName = {
+    Card: '카드',
+    Account: '계좌',
   };
+
+  const updatedMethods = paymentMethods.map((method) =>
+    method.id === methodId
+      ? { 
+          id: method.id,
+          type: method.type,
+          name: typeToKoreanName[method.type] || method.type, // 이름 초기화
+          isRegistered: false // 등록 상태 해제
+          // details 필드 제거
+        } 
+      : method
+  );
+  setPaymentMethods(updatedMethods);
+
+  if (userId) {
+    const userDocRef = doc(firestore, 'users', userId);
+    try {
+      await updateDoc(userDocRef, { paymentMethods: updatedMethods });
+    } catch (error) {
+      console.error('결제 수단 삭제 오류:', error);
+    }
+  }
+};
+
   
 
   return (
