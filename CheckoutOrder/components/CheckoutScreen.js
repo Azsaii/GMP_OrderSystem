@@ -490,7 +490,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                 numColumns={2}
                 columnWrapperStyle={{ justifyContent: 'space-between' }}
                 renderItem={({ item }) => (
-                  <View style={{ position: 'relative' }}>
+                  <View style={{ position: 'relative', marginBottom: 10 }}>
                     <TouchableOpacity onPress={() => handlePaymentMethodSelect(item)}>
                       <View
                         style={[
@@ -500,30 +500,23 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                         ]}
                       >
                         <Text style={styles.paymentMethodText}>{item.name}</Text>
-                        {item.isRegistered && (
+                        {item.isRegistered ? (
                           <Text style={styles.registeredText}>등록 완료</Text>
-                        )}
-                        {!item.isRegistered && (
+                        ) : (
                           <Text style={styles.registerText}>등록 필요</Text>
                         )}
                       </View>
                     </TouchableOpacity>
-                    {/* 삭제 버튼 추가 */}
                     {item.isRegistered && (
-                      <IconButton
-                        icon="trash-can"
-                        size={20}
-                        color="red"
+                      <TouchableOpacity
                         onPress={() => handleDeletePaymentMethod(item.id)}
-                        style={{
-                          position: 'absolute',
-                          top: -5,
-                          right: -5,
-                        }}
-                      />
+                        style={styles.deleteButton}
+                      >
+                        <Text style={styles.deleteButtonText}>X</Text>
+                      </TouchableOpacity>
                     )}
                   </View>
-                )}
+                )}                         
                 scrollEnabled={false}
               />
             )}
