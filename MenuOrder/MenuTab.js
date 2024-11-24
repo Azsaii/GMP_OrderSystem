@@ -81,7 +81,7 @@ const MenuTab = ({ navigation, category }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
       <View style={styles.searchContainer}>
         <TextInput 
           style={styles.searchInput} 
@@ -140,12 +140,14 @@ const styles = StyleSheet.create({
       flexWrap: 'wrap',
       justifyContent: 'space-between',
       padding: 10,
+      backgroundColor: 'white',
     },
     RowContainer: {
       flexDirection: 'row',
       flexWrap: 'wrap',
       justifyContent: 'space-between',
       padding: 10,
+      backgroundColor: 'white',
     },
     menuItem: {
       width: '48%',
@@ -192,6 +194,7 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       padding: 10,
       alignItems: 'center',
+      backgroundColor: 'white',
     },
     searchInput: {
       flex: 1,

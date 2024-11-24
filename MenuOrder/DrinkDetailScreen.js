@@ -89,7 +89,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         <Text style={styles.detailDescription}>{item.description}</Text>
 
         {/* 온도 선택 */}
-        <Text>온도 선택:</Text>
+        <Text style={styles.detailSelect}>온도 선택:</Text>
         <RadioButton.Group onValueChange={setTemperature} value={temperature}>
           <View style={styles.radioGroup}>
             <View style={styles.radioItem}>
@@ -104,7 +104,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         </RadioButton.Group>
 
         {/* 사이즈 선택 */}
-        <Text>사이즈 선택:</Text>
+        <Text style={styles.detailSelect}>사이즈 선택:</Text>
         <RadioButton.Group onValueChange={setSize} value={size}>
           <View style={styles.radioGroup}>
             <View style={styles.radioItem}>
@@ -123,7 +123,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         </RadioButton.Group>
 
         {/* 샷 추가 */}
-        <Text>샷 추가:</Text>
+        <Text style={styles.detailSelect}>샷 추가:</Text>
         <RadioButton.Group onValueChange={(value) => setExtraShot(value === '추가')} value={extraShot ? '추가' : '없음'}>
           <View style={styles.radioGroup}>
             <View style={styles.radioItem}>
@@ -138,7 +138,7 @@ const DrinkDetailScreen = ({ route, navigation, addToCart }) => {
         </RadioButton.Group>
 
         {/* 수량 선택 */}
-        <Text>수량:</Text>
+        <Text style={styles.detailSelect}>수량:</Text>
         <View style={styles.quantityContainer}>
           <TouchableOpacity 
             style={styles.quantityButton} 
@@ -171,8 +171,8 @@ const styles = StyleSheet.create({
   detailContainer: {
     flex: 1,
     alignSelf: 'center',
-    padding: 20,
-    width: '90%',
+    width: '100%',
+    backgroundColor: 'white',
   },
   imageContainer: {
     justifyContent: 'center',
@@ -189,7 +189,13 @@ const styles = StyleSheet.create({
   detailText: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginVertical: 10,
+    margin: 10,
+    textAlign: 'center',
+  },
+  detailSelect: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    margin: 10,
   },
   detailDescription: {
     fontSize: 16,
@@ -198,13 +204,13 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginVertical: 10,
-    textAlign: 'center',
+    margin: 20,
+    textAlign: 'left',
   },
   radioGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    margin: 10,
   },
   radioItem: {
     flexDirection: 'row',
@@ -214,7 +220,7 @@ const styles = StyleSheet.create({
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 10,
+    margin: 10,
   },
   quantityButton: {
     backgroundColor: '#007BFF',

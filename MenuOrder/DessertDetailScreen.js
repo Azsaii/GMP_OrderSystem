@@ -70,7 +70,7 @@ const DessertDetailScreen = ({ route, navigation, addToCart }) => {
         
 
         {/* 수량 선택 */}
-        <Text>수량:</Text>
+        <Text style={styles.detailSelect}>수량:</Text>
         <View style={styles.quantityContainer}>
           <TouchableOpacity 
             style={styles.quantityButton} 
@@ -104,8 +104,9 @@ const styles = StyleSheet.create({
   detailContainer: {
     flex: 1,
     padding: 20,
-    width: '90%', // 가로폭 90%로 설정
+    width: '100%', // 가로폭 90%로 설정
     alignSelf: 'center', // 중앙 정렬
+    backgroundColor: 'white',
   },
   imageContainer: {
     justifyContent: 'center',
@@ -125,6 +126,11 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     textAlign: 'center', // 텍스트 센터 정렬
   },
+  detailSelect: {
+    fontSize: 17,
+    fontWeight: 'bold',
+    margin: 10,
+  },
   detailDescription: {
     fontSize: 16,
     textAlign: 'center',
@@ -133,8 +139,8 @@ const styles = StyleSheet.create({
   priceText: {
     fontSize: 20,
     fontWeight: 'bold',
-    marginVertical: 10,
-    textAlign: 'center', // 가격 센터 정렬
+    margin: 20,
+    textAlign: 'left', // 가격 센터 정렬
   },
   quantityContainer: {
     flexDirection: 'row',
