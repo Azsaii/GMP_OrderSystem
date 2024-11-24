@@ -89,6 +89,9 @@ const AppNavigator = () => {
             <Tab.Screen name="디저트">
               {(props) => <MenuTab {...props} category="dessert" />}
             </Tab.Screen>
+            <Tab.Screen name="추천">
+              {(props) => <MenuTab {...props} category="recommend" />}
+            </Tab.Screen>
             {/* 주문 내역 탭 추가 */}
             {/* <Tab.Screen
               name="주문 내역"
