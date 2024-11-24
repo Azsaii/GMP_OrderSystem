@@ -93,14 +93,7 @@ const Login = ({ navigation }) => {
         value={password}
         onChangeText={setPassword}
       />
-      <ButtonContainer>
-        <LinkButton onPress={() => Alert.alert('아이디 찾기')}>
-          아이디 찾기
-        </LinkButton>
-        <LinkButton onPress={() => Alert.alert('비밀번호 찾기')}>
-          비밀번호 찾기
-        </LinkButton>
-      </ButtonContainer>
+      <ButtonContainer></ButtonContainer>
       <ButtonContainer>
         <StyledButton onPress={handleLogin}>
           <ButtonText>로그인</ButtonText>
