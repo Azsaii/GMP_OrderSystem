@@ -101,41 +101,11 @@ const SignUp = ({ navigation }) => {
         name: nickname,
         email: email,
         points: 5000,
-        coupons: [
-          {
-            name: '신규 가입 쿠폰 (고정 금액)',
-            description: '10,000원 이상 주문 시 3,000원 할인',
-            discountType: '원', // '원' 또는 '%'
-            discountValue: 3000, // 고정 금액 할인 (3,000원)
-            minOrderValue: 10000, // 최소 주문 금액
-            maxDiscountValue: 3000, // 최대 할인 금액 (고정 금액일 경우 discountValue와 동일)
-            startDate: '240101',
-            endDate: '251231',
-            isPublic: true, // 공개 쿠폰 여부
-            canBeCombined: false, // 다른 쿠폰과 결합 가능 여부
-            available: true,
-            isUsed: false, // user 쿠폰 사용 여부 기록
-          },
-          {
-            name: '신규 가입 쿠폰 (퍼센트)',
-            description: '10,000원 이상 주문 시 10% 할인',
-            discountType: '%', // '원' 또는 '%'
-            discountValue: 10, // 퍼센트 할인 (10%)
-            minOrderValue: 10000, // 최소 주문 금액
-            maxDiscountValue: 3000, // 최대 할인 금액
-            startDate: '240101',
-            endDate: '251231',
-            isPublic: true, // 공개 쿠폰 여부
-            canBeCombined: false, // 다른 쿠폰과 결합 가능 여부
-            available: true,
-            isUsed: false, // user 쿠폰 사용 여부 기록
-          },
-        ],
         paymentMethods: [
           { id: 'p1', type: 'Card', name: '카드', isRegistered: false },
           { id: 'p2', type: 'Account', name: '계좌', isRegistered: false },
-          { id: 'p3', type: 'KakaoPay', name: '카카오페이', isRegistered: true },
-          { id: 'p4', type: 'TossPay', name: '토스페이', isRegistered: true },
+          { id: 'p3', type: 'Card', name: '카드', isRegistered: false },
+          { id: 'p4', type: 'Account', name: '계좌', isRegistered: false },
         ],
       };
       await setDoc(userRef, initialData);

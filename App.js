@@ -1,5 +1,6 @@
 // App.js
 import React, { useState } from 'react';
+import styled from 'styled-components/native';
 import {
   Provider as ReduxProvider,
   useSelector,
@@ -17,7 +18,7 @@ import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
 import CheckoutScreen from './CheckoutOrder/components/CheckoutScreen';
 import UserScreen from './OrderList/UserScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Button, View, Text } from 'react-native';
+import { Button, View, Text, ImageBackground } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { UserProvider } from './CheckoutOrder/contexts/UserContext';
@@ -37,13 +38,16 @@ const AppNavigator = () => {
 
   // 장바구니에서 메뉴를 제거하는 함수
   const removeFromCart = (itemToRemove) => {
-    setCartItems(cartItems.filter(item => 
-      item.name !== itemToRemove.name ||
-      item.temperature !== itemToRemove.temperature ||
-      item.size !== itemToRemove.size ||
-      item.extraShot !== itemToRemove.extraShot ||
-      item.syrup !== itemToRemove.syrup
-    ));
+    setCartItems(
+      cartItems.filter(
+        (item) =>
+          item.name !== itemToRemove.name ||
+          item.temperature !== itemToRemove.temperature ||
+          item.size !== itemToRemove.size ||
+          item.extraShot !== itemToRemove.extraShot ||
+          item.syrup !== itemToRemove.syrup
+      )
+    );
   };
 
   const clearCart = () => {
@@ -67,12 +71,13 @@ const AppNavigator = () => {
         options={({ navigation }) => ({
           headerRight: () =>
             isLoggedIn ? (
-              <Button title="로그아웃" onPress={handleLogout} />
+              <StyledButton onPress={handleLogout}>
+                <ButtonText>로그아웃</ButtonText>
+              </StyledButton>
             ) : (
-              <Button
-                title="로그인"
-                onPress={() => navigation.navigate('Login')}
-              />
+              <StyledButton onPress={() => navigation.navigate('Login')}>
+                <ButtonText>로그인</ButtonText>
+              </StyledButton>
             ),
         })}
       >
@@ -117,10 +122,11 @@ const AppNavigator = () => {
       </Stack.Screen>
       <Stack.Screen name="Cart">
         {(props) => (
-          <CartScreen {...props}
-          cartItems={cartItems}
-          clearCart={clearCart}
-          removeFromCart={removeFromCart} // 제거 함수 전달
+          <CartScreen
+            {...props}
+            cartItems={cartItems}
+            clearCart={clearCart}
+            removeFromCart={removeFromCart} // 제거 함수 전달
           />
         )}
       </Stack.Screen>
@@ -170,5 +176,15 @@ const App = () => {
     </ReduxProvider>
   );
 };
+
+const StyledButton = styled.TouchableOpacity`
+  background-color: black;
+  padding: 10px;
+  border-radius: 5px;
+`;
+
+const ButtonText = styled.Text`
+  color: white;
+`;
 
 export default App;
