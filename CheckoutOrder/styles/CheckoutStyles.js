@@ -191,6 +191,21 @@ const CheckoutStyles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  deleteButton: {
+    position: 'absolute',
+    top: 5,
+    right: 5, 
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButtonText: {
+    color: 'red',
+    fontWeight: 'bold',
+    fontSize: 20,
+  },
 });
 
 export default CheckoutStyles;

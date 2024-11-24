@@ -1,25 +1,28 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Button, Alert } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Button, Alert, Animated, Easing } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { collection, getDocs, query, where } from 'firebase/firestore'; 
-import { firestore, auth } from '../firebaseConfig'; // Firebase 설정 파일
+import { collection, query, where, onSnapshot } from 'firebase/firestore'; 
+import { firestore, auth } from '../firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
-import { format } from 'date-fns'; // 날짜 형식을 위한 라이브러리
+import { format } from 'date-fns';
 
 export default function UserScreen() {
   const [orderDetails, setOrderDetails] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState(null);
-  const [startDate, setStartDate] = useState(new Date()); // 시작 날짜
-  const [endDate, setEndDate] = useState(new Date()); // 종료 날짜
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
-  // 로그인된 사용자 정보 가져오기
+  const progressBarColor = useState(new Animated.Value(0))[0];
+  const checkmarkOpacity = useState(new Animated.Value(0))[0];
+  const spinValue = useState(new Animated.Value(0))[0];
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setUserId(user.uid); // 사용자 UID 설정
+        setUserId(user.uid);
       } else {
         setUserId(null);
         Alert.alert('오류', '로그인된 사용자가 없습니다.');
@@ -29,51 +32,40 @@ export default function UserScreen() {
     return () => unsubscribe();
   }, []);
 
-  // Firestore에서 날짜 필터를 사용하여 주문 데이터 가져오기
-  const fetchOrderData = async () => {
+  useEffect(() => {
     if (!userId) return;
+    setLoading(true);
 
-    try {
-      const formattedStartDate = format(startDate, 'yyMMdd'); // YYMMDD 형식으로 변환
-      const formattedEndDate = format(endDate, 'yyMMdd'); // YYMMDD 형식으로 변환
+    const formattedStartDate = format(startDate, 'yyMMdd');
+    const formattedEndDate = format(endDate, 'yyMMdd');
+    let unsubscribeList = [];
 
-      let allOrders = [];
+    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+      const dateString = format(d, 'yyMMdd');
+      const ordersCollectionRef = collection(firestore, 'orders', dateString, 'orders');
+      const q = query(ordersCollectionRef, where('customerId', '==', userId));
 
-      // 시작 날짜부터 종료 날짜까지 Firestore에서 주문 가져오기
-      for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-        const dateString = format(d, 'yyMMdd');
-        const ordersCollectionRef = collection(firestore, 'orders', dateString, 'orders');
-        const q = query(ordersCollectionRef, where('customerId', '==', userId)); // customerId 필터링
-        const ordersSnapshot = await getDocs(q);
-
-        const ordersData = ordersSnapshot.docs.map((doc) => ({
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        const updatedOrders = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        allOrders = [...allOrders, ...ordersData];
-      }
+        setOrderDetails((prevOrders) => {
+          const updatedOrderMap = new Map(prevOrders.map(order => [order.id, order]));
+          updatedOrders.forEach(order => updatedOrderMap.set(order.id, order));
+          return Array.from(updatedOrderMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        });
+      });
 
-      // 최신순으로 정렬
-      allOrders.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-      setOrderDetails(allOrders);
-    } catch (error) {
-      console.error('주문 데이터를 가져오는 중 오류 발생:', error);
-      Alert.alert('오류', '주문 데이터를 가져오는 중 오류가 발생했습니다.');
-    } finally {
-      setLoading(false);
+      unsubscribeList.push(unsubscribe);
     }
-  };
 
-  // 주문 데이터 가져오기 실행
-  useEffect(() => {
-    if (userId) {
-      fetchOrderData();
-    }
-  }, [userId, startDate, endDate]); // 날짜가 변경될 때마다 새로 가져오기
+    setLoading(false);
 
-  // 시작 날짜 선택
+    return () => unsubscribeList.forEach(unsub => unsub());
+  }, [userId, startDate, endDate]);
+
   const handleStartDateChange = (event, selectedDate) => {
     setShowStartDatePicker(false);
     if (selectedDate) {
@@ -81,13 +73,67 @@ export default function UserScreen() {
     }
   };
 
-  // 종료 날짜 선택
   const handleEndDateChange = (event, selectedDate) => {
     setShowEndDatePicker(false);
     if (selectedDate) {
       setEndDate(selectedDate);
     }
   };
+
+  const getOrderStatus = (order) => {
+    if (!order.isStarted && !order.isCompleted) return '조리 전';
+    if (order.isStarted && !order.isCompleted) return '조리 중';
+    if (order.isStarted && order.isCompleted) return '조리 완료';
+    return '알 수 없음';
+  };
+
+  const getProgressBarWidth = (order) => {
+    if (!order.isStarted && !order.isCompleted) return '0%';
+    if (order.isStarted && !order.isCompleted) return '50%';
+    if (order.isStarted && order.isCompleted) return '100%';
+    return '0%';
+  };
+
+  const startLoadingAnimation = () => {
+    Animated.loop(
+      Animated.timing(spinValue, {
+        toValue: 1,
+        duration: 1000,
+        easing: Easing.linear,
+        useNativeDriver: true,
+      })
+    ).start();
+  };
+
+  const stopLoadingAnimation = () => {
+    spinValue.setValue(0);
+  };
+
+  const triggerCompletionAnimation = () => {
+    Animated.parallel([
+      Animated.timing(progressBarColor, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: false,
+      }),
+      Animated.timing(checkmarkOpacity, {
+        toValue: 1,
+        duration: 500,
+        delay: 500,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const interpolatedColor = progressBarColor.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['#76c7c0', '#FFD700'] 
+  });
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
 
   if (loading) {
     return (
@@ -108,7 +154,6 @@ export default function UserScreen() {
 
   return (
     <ScrollView style={styles.container}>
-      {/* 날짜 선택기 */}
       <View style={styles.datePickerContainer}>
         <Button title="시작 날짜 선택" onPress={() => setShowStartDatePicker(true)} />
         {showStartDatePicker && (
@@ -133,15 +178,37 @@ export default function UserScreen() {
         <Text>선택된 기간: {format(startDate, 'yyyy-MM-dd')} ~ {format(endDate, 'yyyy-MM-dd')}</Text>
       </View>
 
-      {/* 주문 정보 섹션 */}
       <View style={styles.orderDetails}>
         {orderDetails.map((order) => (
           <View key={order.id} style={styles.orderItem}>
             <Text style={styles.orderTitle}>주문 ID: {order.id}</Text>
             <Text>고객 ID: {order.customerId || 'Unknown'}</Text>
-            <Text>완료 여부: {order.isCompleted ? '완료' : '미완료'}</Text>
+            
+            <Text>상태: {getOrderStatus(order)}</Text>
 
-            {/* 메뉴 리스트 렌더링 */}
+            <View style={styles.progressBar}>
+              <Animated.View
+                style={[
+                  styles.progress,
+                  {
+                    width: getProgressBarWidth(order),
+                    backgroundColor: interpolatedColor,
+                  },
+                ]}
+              />
+            </View>
+
+            {getOrderStatus(order) === '조리 중' && (
+              <Animated.View style={[styles.loadingSpinner, { transform: [{ rotate: spin }] }]} />
+            )}
+
+            {getOrderStatus(order) === '조리 완료' && (
+              <Animated.Text style={[styles.checkmark, { opacity: checkmarkOpacity }]}>✔️</Animated.Text>
+            )}
+
+            {getOrderStatus(order) === '조리 중' ? startLoadingAnimation() : stopLoadingAnimation()}
+            {getOrderStatus(order) === '조리 완료' && triggerCompletionAnimation()}
+
             {order.menuList && order.menuList.map((item, index) => (
               <View key={index} style={styles.menuItem}>
                 <Text>메뉴 이름: {item.menuName}</Text>
@@ -187,5 +254,34 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  progressBar: {
+    height: 10,
+    width: '100%',
+    backgroundColor: '#e0e0e0',
+    borderRadius: 5,
+    overflow: 'hidden',
+    marginTop: 5,
+    marginBottom: 10,
+  },
+  progress: {
+    height: '100%',
+    borderRadius: 5,
+  },
+  loadingSpinner: {
+    width: 20,
+    height: 20,
+    borderWidth: 2,
+    borderColor: '#76c7c0',
+    borderRadius: 10,
+    borderTopColor: 'transparent',
+    alignSelf: 'center',
+    marginTop: 5,
+  },
+  checkmark: {
+    fontSize: 24,
+    color: '#FFD700',
+    textAlign: 'center',
+    marginTop: 5,
   },
 });
