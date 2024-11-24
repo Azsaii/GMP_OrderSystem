@@ -29,21 +29,29 @@ const calculatePrice = (basePrice, quantity, extraShot, size) => {
 
   // 사이즈에 따른 추가 비용
   if (size === '그란데') {
-    extraCost += 500; // 그란데 시 500원 추가
+    extraCost += 500; // 그란데 사이즈 선택 시 500원 추가
   } else if (size === '벤티') {
-    extraCost += 1000; // 벤티 시 1000원 추가
+    extraCost += 1000; // 벤티 사이즈 선택 시 1000원 추가
   }
 
   return (basePrice + extraCost) * quantity; // 최종 가격 계산
 };
 
+// 총 금액을 계산하는 함수
+const calculateTotalAmount = (items) => {
+  return items.reduce((total, item) => {
+    return total + (item.totalPrice * item.quantity);
+  }, 0);
+};
+
 const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
   const groupedCartItems = groupCartItems(cartItems); // 그룹화된 장바구니 아이템
   const [modalVisible, setModalVisible] = useState(false); // 모달 상태
+  const totalAmount = calculateTotalAmount(groupedCartItems); // 총 금액 계산
 
   return (
     <SafeAreaView style={styles.cartContainer}>
-      <Text style={styles.cartTitle}>장바구니</Text>
+      {/* <Text style={styles.cartTitle}>장바구니</Text> */}
       <ScrollView>
         {groupedCartItems.length === 0 ? (
           <Text style={styles.emptyCart}>장바구니가 비어 있습니다.</Text>
@@ -53,7 +61,7 @@ const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
               <View key={index} style={styles.cartItem}>
                 <ImageLoader uri={item.image} />
                 <View style={styles.cartDetails}>
-                  <Text>{item.name}</Text>
+                  <Text style={styles.menuTitle}>{item.name}</Text>
                   {item.temperature ? ( // 온도 옵션이 있으면 drink, 없으면 dessert로 표시
                     <>
                       <Text>온도: {item.temperature}</Text>
@@ -80,6 +88,10 @@ const CartScreen = ({ cartItems, navigation, clearCart, removeFromCart }) => {
           })
         )}
       </ScrollView>
+      
+      {/* 총 금액 표시 */}
+      <Text style={styles.totalAmount}>총 금액: {totalAmount} 원</Text>
+
       <TouchableOpacity 
         style={styles.orderButton} 
         onPress={() => {
@@ -128,11 +140,14 @@ const styles = StyleSheet.create({
   cartContainer: {
     flex: 1,
     padding: 20,
+    backgroundColor: 'white',
   },
   cartTitle: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 20,
+    marginTop: 20,
+    marginLeft: 150,
   },
   emptyCart: {
     textAlign: 'center',
@@ -167,6 +182,12 @@ const styles = StyleSheet.create({
   cartDetails: {
     flex: 1, // 텍스트가 남은 공간을 차지하도록 설정
   },
+  totalAmount: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'left',
+    margin: 20,
+  },
   orderButton: {
     backgroundColor: '#007BFF',
     padding: 15,
@@ -189,6 +210,10 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: 'bold',
   },
+  menuTitle: {
+    fontWeight: 'bold',
+    fontSize: '20'
+  }
 });
 
 export default CartScreen;
