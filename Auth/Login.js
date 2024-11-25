@@ -49,12 +49,6 @@ const ButtonText = styled.Text`
   font-size: 16px;
 `;
 
-const LinkButton = styled.Text`
-  color: blue; /* 링크 버튼 색상을 파란색으로 설정 */
-  font-size: 14px;
-  margin-bottom: 10px; /* 아래쪽 여백 추가 */
-`;
-
 const Login = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -93,7 +87,6 @@ const Login = ({ navigation }) => {
         value={password}
         onChangeText={setPassword}
       />
-      <ButtonContainer></ButtonContainer>
       <ButtonContainer>
         <StyledButton onPress={handleLogin}>
           <ButtonText>로그인</ButtonText>

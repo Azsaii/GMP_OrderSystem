@@ -70,10 +70,10 @@ const SignUp = ({ navigation }) => {
   const handleSignUp = async () => {
     // 각 입력창에 대해 조건에 맞지 않으면 에러메시지를 표시
     const newErrorMessages = {};
-    if (!nickname) newErrorMessages.nickname = '닉네임은 최대 10자입니다.';
+    if (!nickname) newErrorMessages.nickname = '닉네임을 입력해주세요.';
     if (nickname.length > 10)
       newErrorMessages.nickname = '닉네임은 최대 10자입니다.';
-    if (!email) newErrorMessages.email = '아이디는 이메일 형식입니다.';
+    if (!email) newErrorMessages.email = '이메일을 입력해주세요.';
     if (!/\S+@\S+\.\S+/.test(email))
       newErrorMessages.email = '아이디는 이메일 형식입니다.';
     if (!password || password.length < 6 || password.length > 20) {
