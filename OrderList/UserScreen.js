@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, ScrollView, StyleSheet, ActivityIndicator, Button, Alert, Animated, Easing } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { collection, query, where, onSnapshot } from 'firebase/firestore'; 
+import { collection, query, where, onSnapshot, doc, setDoc } from 'firebase/firestore';
 import { firestore, auth } from '../firebaseConfig';
 import { onAuthStateChanged } from 'firebase/auth';
 import { format } from 'date-fns';
+import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';
 
 export default function UserScreen() {
   const [orderDetails, setOrderDetails] = useState([]);
@@ -20,9 +22,14 @@ export default function UserScreen() {
   const spinValue = useState(new Animated.Value(0))[0];
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
         setUserId(user.uid);
+
+        const token = await registerForPushNotificationsAsync();
+        if (token) {
+          await savePushTokenToFirestore(user.uid, token);
+        }
       } else {
         setUserId(null);
         Alert.alert('오류', '로그인된 사용자가 없습니다.');
@@ -53,7 +60,11 @@ export default function UserScreen() {
 
         setOrderDetails((prevOrders) => {
           const updatedOrderMap = new Map(prevOrders.map(order => [order.id, order]));
-          updatedOrders.forEach(order => updatedOrderMap.set(order.id, order));
+          updatedOrders.forEach(order => {
+            updatedOrderMap.set(order.id, order);
+
+            sendNotification(order);
+          });
           return Array.from(updatedOrderMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         });
       });
@@ -66,18 +77,66 @@ export default function UserScreen() {
     return () => unsubscribeList.forEach(unsub => unsub());
   }, [userId, startDate, endDate]);
 
-  const handleStartDateChange = (event, selectedDate) => {
-    setShowStartDatePicker(false);
-    if (selectedDate) {
-      setStartDate(selectedDate);
+  const savePushTokenToFirestore = async (userId, token) => {
+    try {
+      const userRef = doc(firestore, 'users', userId);
+      await setDoc(userRef, { expoPushToken: token }, { merge: true });
+    } catch (error) {
+      console.error('푸시 토큰 저장 실패:', error);
     }
   };
 
-  const handleEndDateChange = (event, selectedDate) => {
-    setShowEndDatePicker(false);
-    if (selectedDate) {
-      setEndDate(selectedDate);
+  const registerForPushNotificationsAsync = async () => {
+    
+
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== 'granted') {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
     }
+
+    if (finalStatus !== 'granted') {
+      Alert.alert('권한 거부됨', '푸시 알림 권한이 필요합니다.');
+      return null;
+    }
+
+    const token = (await Notifications.getExpoPushTokenAsync()).data;
+    return token;
+  };
+
+  const notifiedOrders = new Set();
+
+  const sendNotification = async (order) => {
+    const orderStatus = getOrderStatus(order);
+    const uniqueKey = `${order.id}-${orderStatus}`; // 고유 키 생성 (주문 ID + 상태)
+    // 이미 알림을 보낸 경우, 함수 종료
+  if (notifiedOrders.has(uniqueKey)) {
+    return;
+  }
+
+    if (orderStatus === '조리 완료') {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '조리 완료 알림',
+          body: `주문 ${order.id}이 조리가 완료되었습니다!`,
+          sound: true,
+        },
+        trigger: null,
+      });
+    } else if (orderStatus === '조리 중') {
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: '조리 진행 중 알림',
+          body: `주문 ${order.id}이 조리 중입니다.`,
+          sound: true,
+        },
+        trigger: null,
+      });
+    }
+    // 알림 전송 후 Set에 추가
+    notifiedOrders.add(uniqueKey);
   };
 
   const getOrderStatus = (order) => {
@@ -214,7 +273,7 @@ export default function UserScreen() {
                 <Text>메뉴 이름: {item.menuName}</Text>
                 <Text>옵션: {item.options.join(', ')}</Text>
                 <Text>수량: {item.quantity}</Text>
-                <Text>가격: {item.total}원</Text>
+                <Text>가격: {item.price*item.quantity}원</Text>
               </View>
             ))}
           </View>
@@ -246,14 +305,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 5,
-  },
-  menuItem: {
-    marginBottom: 10,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   progressBar: {
     height: 10,
