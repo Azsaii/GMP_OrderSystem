@@ -30,6 +30,10 @@ yarn-error.*
 .DS_Store
 *.pem
 
+google-services.json
+/ios
+/android
+
 # local env files
 .env*.local
 
