@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components/native';
 import {
   Provider as ReduxProvider,
@@ -17,7 +17,7 @@ import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
 import CheckoutScreen from './CheckoutOrder/components/CheckoutScreen';
 import UserScreen from './OrderList/UserScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Button, Image } from 'react-native';
+import { Button, View, Text, ImageBackground, Image } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { UserProvider } from './CheckoutOrder/contexts/UserContext';
@@ -27,8 +27,30 @@ const Stack = createNativeStackNavigator();
 const Tab = createMaterialTopTabNavigator();
 
 const AppNavigator = () => {
+  const [cartItems, setCartItems] = useState([]);
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const dispatch = useDispatch();
+
+  const addToCart = (item) => {
+    setCartItems([...cartItems, item]);
+  };
+
+  const removeFromCart = (itemToRemove) => {
+    setCartItems(
+      cartItems.filter(
+        (item) =>
+          item.name !== itemToRemove.name ||
+          item.temperature !== itemToRemove.temperature ||
+          item.size !== itemToRemove.size ||
+          item.extraShot !== itemToRemove.extraShot ||
+          item.syrup !== itemToRemove.syrup
+      )
+    );
+  };
+
+  const clearCart = () => {
+    setCartItems([]);
+  };
 
   const handleLogout = async () => {
     try {
@@ -42,7 +64,7 @@ const AppNavigator = () => {
   // 커스텀 헤더 타이틀 컴포넌트
   const HeaderTitle = () => (
     <Image
-      source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/mobile8-b37a5.appspot.com/o/image_logo%2Fstarbucks_logo.png?alt=media&token=2a81283e-6e3c-43be-9cc8-59cf3e8f9dfb' }}
+      source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/mobile8-b37a5.appspot.com/o/image_logo%2Fstarbucks_logo.png?alt=media&token=2a81283e-6e3c-43be-9cc8-59cf3e8f9dfb' }} // 여기에 이미지 URL을 입력하세요.
       style={{ width: 100, height: 40 }} // 원하는 크기로 조정하세요.
       resizeMode="contain" // 이미지가 비율에 맞게 조정되도록 설정
     />
@@ -83,16 +105,18 @@ const AppNavigator = () => {
 
       {/* 상세 화면들 */}
       <Stack.Screen name="DrinkDetail" options={{ title: '음료 상세보기' }}>
-        {(props) => <DrinkDetailScreen {...props} />}
+        {(props) => <DrinkDetailScreen {...props} addToCart={addToCart} />}
       </Stack.Screen>
       <Stack.Screen name="DessertDetail" options={{ title: '디저트 상세보기' }}>
-        {(props) => <DessertDetailScreen {...props} />}
+        {(props) => <DessertDetailScreen {...props} addToCart={addToCart} />}
       </Stack.Screen>
       <Stack.Screen name="Cart">
         {(props) => (
           <CartScreen
             {...props}
-            // cartItems, clearCart, removeFromCart 정의 필요
+            cartItems={cartItems}
+            clearCart={clearCart}
+            removeFromCart={removeFromCart}
           />
         )}
       </Stack.Screen>
@@ -100,7 +124,7 @@ const AppNavigator = () => {
         {(props) => (
           <CheckoutScreen
             {...props}
-            // onClearCart 정의 필요
+            onClearCart={clearCart}
           />
         )}
       </Stack.Screen>
@@ -116,6 +140,8 @@ const AppNavigator = () => {
         component={SignUp}
         options={{ title: '회원 가입' }}
       />
+
+      {/* UserScreen 추가 */}
       <Stack.Screen
         name="UserScreen"
         component={UserScreen}
