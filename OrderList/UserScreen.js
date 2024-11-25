@@ -106,43 +106,30 @@ export default function UserScreen() {
     return token;
   };
 
-  const notifiedOrders = new Set();
+  
 
   const sendNotification = async (order) => {
     const orderStatus = getOrderStatus(order);
-    const uniqueKey = `${order.id}-${orderStatus}`; // 고유 키 생성 (주문 ID + 상태)
-    // 이미 알림을 보낸 경우, 함수 종료
-  if (notifiedOrders.has(uniqueKey)) {
-    return;
-  }
+    
 
-    if (orderStatus === '조리 완료') {
+    if (orderStatus === '준비 완료') {
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: '조리 완료 알림',
-          body: `주문 ${order.id}이 조리가 완료되었습니다!`,
+          title: '준비 완료 알림',
+          body: `[주문번호 ${order.id}]주문하신 메뉴가 나왔습니다!`,
           sound: true,
         },
         trigger: null,
       });
-    } else if (orderStatus === '조리 중') {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '조리 진행 중 알림',
-          body: `주문 ${order.id}이 조리 중입니다.`,
-          sound: true,
-        },
-        trigger: null,
-      });
+    
     }
-    // 알림 전송 후 Set에 추가
-    notifiedOrders.add(uniqueKey);
+   
   };
 
   const getOrderStatus = (order) => {
-    if (!order.isStarted && !order.isCompleted) return '조리 전';
-    if (order.isStarted && !order.isCompleted) return '조리 중';
-    if (order.isStarted && order.isCompleted) return '조리 완료';
+    if (!order.isStarted && !order.isCompleted) return '주문 완료';
+    if (order.isStarted && !order.isCompleted) return '준비 중';
+    if (order.isStarted && order.isCompleted) return '준비 완료';
     return '알 수 없음';
   };
 
@@ -257,16 +244,16 @@ export default function UserScreen() {
               />
             </View>
 
-            {getOrderStatus(order) === '조리 중' && (
+            {getOrderStatus(order) === '주문 완료' && (
               <Animated.View style={[styles.loadingSpinner, { transform: [{ rotate: spin }] }]} />
             )}
 
-            {getOrderStatus(order) === '조리 완료' && (
+            {getOrderStatus(order) === '준비 중' && (
               <Animated.Text style={[styles.checkmark, { opacity: checkmarkOpacity }]}>✔️</Animated.Text>
             )}
 
-            {getOrderStatus(order) === '조리 중' ? startLoadingAnimation() : stopLoadingAnimation()}
-            {getOrderStatus(order) === '조리 완료' && triggerCompletionAnimation()}
+            {getOrderStatus(order) === '준비 중' ? startLoadingAnimation() : stopLoadingAnimation()}
+            {getOrderStatus(order) === '준비 완료' && triggerCompletionAnimation()}
 
             {order.menuList && order.menuList.map((item, index) => (
               <View key={index} style={styles.menuItem}>
