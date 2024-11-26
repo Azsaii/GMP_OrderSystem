@@ -1,4 +1,3 @@
-// App.js
 import React, { useState } from 'react';
 import styled from 'styled-components/native';
 import {
@@ -18,7 +17,7 @@ import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
 import CheckoutScreen from './CheckoutOrder/components/CheckoutScreen';
 import UserScreen from './OrderList/UserScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Button, View, Text, ImageBackground } from 'react-native';
+import { Button, View, Text, ImageBackground, Image } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { UserProvider } from './CheckoutOrder/contexts/UserContext';
@@ -36,7 +35,6 @@ const AppNavigator = () => {
     setCartItems([...cartItems, item]);
   };
 
-  // 장바구니에서 메뉴를 제거하는 함수
   const removeFromCart = (itemToRemove) => {
     setCartItems(
       cartItems.filter(
@@ -56,19 +54,28 @@ const AppNavigator = () => {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth); // Firebase 로그아웃
-      dispatch(setLoggedIn(false)); // Redux 상태 업데이트
+      await signOut(auth);
+      dispatch(setLoggedIn(false));
     } catch (error) {
       console.error('로그아웃 실패:', error);
     }
   };
 
+  // 커스텀 헤더 타이틀 컴포넌트
+  const HeaderTitle = () => (
+    <Image
+      source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/mobile8-b37a5.appspot.com/o/image_logo%2Fstarbucks_logo.png?alt=media&token=2a81283e-6e3c-43be-9cc8-59cf3e8f9dfb' }} // 여기에 이미지 URL을 입력하세요.
+      style={{ width: 100, height: 40 }} // 원하는 크기로 조정하세요.
+      resizeMode="contain" // 이미지가 비율에 맞게 조정되도록 설정
+    />
+  );
+
   return (
     <Stack.Navigator initialRouteName="Home">
-      {/* 홈 화면 설정 */}
       <Stack.Screen
         name="Home"
         options={({ navigation }) => ({
+          headerTitle: () => <HeaderTitle />, // 커스텀 헤더 타이틀 설정
           headerRight: () =>
             isLoggedIn ? (
               <StyledButton onPress={handleLogout}>
@@ -89,29 +96,9 @@ const AppNavigator = () => {
             <Tab.Screen name="디저트">
               {(props) => <MenuTab {...props} category="dessert" />}
             </Tab.Screen>
-            <Tab.Screen name="추천">
+            <Tab.Screen name="추천 메뉴">
               {(props) => <MenuTab {...props} category="recommend" />}
             </Tab.Screen>
-            {/* 주문 내역 탭 추가 */}
-            {/* <Tab.Screen
-              name="주문 내역"
-              options={{ tabBarLabel: '주문 내역' }}
-            >
-              {(props) => (
-                <View
-                  style={{
-                    flex: 1,
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                  }}
-                >
-                  <Button
-                    title="주문 확인"
-                    onPress={() => props.navigation.navigate('UserScreen')}
-                  />
-                </View>
-              )}
-            </Tab.Screen> */}
           </Tab.Navigator>
         )}
       </Stack.Screen>
@@ -129,7 +116,7 @@ const AppNavigator = () => {
             {...props}
             cartItems={cartItems}
             clearCart={clearCart}
-            removeFromCart={removeFromCart} // 제거 함수 전달
+            removeFromCart={removeFromCart}
           />
         )}
       </Stack.Screen>
@@ -137,7 +124,7 @@ const AppNavigator = () => {
         {(props) => (
           <CheckoutScreen
             {...props}
-            onClearCart={clearCart} // clearCart 함수 전달
+            onClearCart={clearCart}
           />
         )}
       </Stack.Screen>
@@ -167,9 +154,7 @@ const AppNavigator = () => {
 const App = () => {
   return (
     <ReduxProvider store={store}>
-      {/* UserProvider 추가 */}
       <UserProvider>
-        {/* PaperProvider 추가 */}
         <PaperProvider>
           <NavigationContainer>
             <AppNavigator />
