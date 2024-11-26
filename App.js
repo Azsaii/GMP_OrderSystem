@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components/native';
 import {
   Provider as ReduxProvider,
@@ -17,7 +17,7 @@ import DessertDetailScreen from './MenuOrder/DessertDetailScreen';
 import CheckoutScreen from './CheckoutOrder/components/CheckoutScreen';
 import UserScreen from './OrderList/UserScreen';
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { Button, View, Text, ImageBackground, Image } from 'react-native';
+import { Image, LogBox } from 'react-native';
 import { auth } from './firebaseConfig';
 import { signOut } from 'firebase/auth';
 import { UserProvider } from './CheckoutOrder/contexts/UserContext';
@@ -30,6 +30,10 @@ const AppNavigator = () => {
   const [cartItems, setCartItems] = useState([]);
   const isLoggedIn = useSelector((state) => state.auth.isLoggedIn);
   const dispatch = useDispatch();
+
+  useEffect(() => {
+    // LogBox.ignoreAllLogs(); // 모든 경고, 에러 로그박스 제거
+  }, []);
 
   const addToCart = (item) => {
     setCartItems([...cartItems, item]);

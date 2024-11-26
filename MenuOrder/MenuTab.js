@@ -103,7 +103,7 @@ const MenuTab = ({ navigation, category }) => {
   const handleSearch = (text) => {
     setSearchTerm(text);
     if (text) {
-      const filtered = menuItems.filter(item => 
+      const filtered = menuItems.filter(item =>
         item.name.toLowerCase().includes(text.toLowerCase())
       );
       setFilteredItems(filtered);
@@ -176,24 +176,24 @@ const MenuTab = ({ navigation, category }) => {
           </View>
         )
       )}
-  
+
       {(category === 'dessert' || category === 'beverage') && (
         <View style={styles.searchContainer}>
-          <TextInput 
-            style={styles.searchInput} 
-            placeholder="메뉴 검색..." 
-            value={searchTerm} 
-            onChangeText={handleSearch} 
+          <TextInput
+            style={styles.searchInput}
+            placeholder="메뉴 검색..."
+            value={searchTerm}
+            onChangeText={handleSearch}
           />
           <TouchableOpacity style={styles.searchButton} onPress={() => handleSearch(searchTerm)}>
-            <Image 
+            <Image
               source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/mobile8-b37a5.appspot.com/o/image_logo%2Freading_glasses.png?alt=media&token=97a4b8fc-9117-4254-8d50-0d506cca39c4' }} // 여기에 새로운 이미지 URL을 입력하세요.
               style={styles.searchIcon} // 새로운 스타일을 추가하여 아이콘 크기를 조정합니다.
             />
           </TouchableOpacity>
         </View>
       )}
-  
+
       <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
         <View style={styles.menuContainer}>
           {filteredItems.map((item) => (
@@ -209,9 +209,9 @@ const MenuTab = ({ navigation, category }) => {
                 {loadingStates[item.id] && (
                   <ActivityIndicator size="large" color="#0000ff" style={styles.spinner} />
                 )}
-                <Image 
-                  source={{ uri: item.image_url }} 
-                  style={styles.menuImage} 
+                <Image
+                  source={{ uri: item.image_url }}
+                  style={styles.menuImage}
                   onLoadStart={() => handleImageLoadStart(item.id)}
                   onLoadEnd={() => handleImageLoadEnd(item.id)}
                 />
