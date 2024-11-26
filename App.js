@@ -64,8 +64,8 @@ const AppNavigator = () => {
   // 커스텀 헤더 타이틀 컴포넌트
   const HeaderTitle = () => (
     <Image
-      source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/mobile8-b37a5.appspot.com/o/image_logo%2Fstarbucks_logo.png?alt=media&token=2a81283e-6e3c-43be-9cc8-59cf3e8f9dfb' }} // 여기에 이미지 URL을 입력하세요.
-      style={{ width: 100, height: 40 }} // 원하는 크기로 조정하세요.
+      source={{ uri: 'https://firebasestorage.googleapis.com/v0/b/mobile8-b37a5.appspot.com/o/image_logo%2Flogo.png?alt=media&token=cbc2c49c-9c2d-4c44-9f53-497fae302d20' }} // 여기에 이미지 URL을 입력하세요.
+      style={{ width: 40, height: 40 }} // 원하는 크기로 조정하세요.
       resizeMode="contain" // 이미지가 비율에 맞게 조정되도록 설정
     />
   );

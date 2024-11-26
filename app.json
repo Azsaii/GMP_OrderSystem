@@ -7,9 +7,10 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/startbucks_logo_first.jpg",
+      "image": "./assets/logo.jpg",
       "resizeMode": "contain",
-      "backgroundColor": "#02110A"
+      "backgroundColor": "white"
+
     },
     "ios": {
       "supportsTablet": true,
