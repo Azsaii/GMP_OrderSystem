@@ -17,6 +17,22 @@ export default function UserScreen() {
   const [showStartDatePicker, setShowStartDatePicker] = useState(false);
   const [showEndDatePicker, setShowEndDatePicker] = useState(false);
 
+  // 시작 날짜 변경 핸들러
+  const handleStartDateChange = (event, selectedDate) => {
+    setShowStartDatePicker(false); // DateTimePicker 닫기
+    if (selectedDate) {
+      setStartDate(selectedDate); // 선택된 날짜를 시작 날짜로 설정
+    }
+  };
+
+  // 종료 날짜 변경 핸들러
+  const handleEndDateChange = (event, selectedDate) => {
+    setShowEndDatePicker(false); // DateTimePicker 닫기
+    if (selectedDate) {
+      setEndDate(selectedDate); // 선택된 날짜를 종료 날짜로 설정
+    }
+  };
+
   const progressBarColor = useState(new Animated.Value(0))[0];
   const checkmarkOpacity = useState(new Animated.Value(0))[0];
   const spinValue = useState(new Animated.Value(0))[0];
@@ -192,8 +208,8 @@ export default function UserScreen() {
 
   if (!orderDetails.length) {
     return (
-      <View style={styles.loadingContainer}>
-        <Text>일치하는 주문이 없습니다.</Text>
+      <View style={styles.noOrdersContainer}>
+        <Text style={styles.noOrdersText}>일치하는 주문이 없습니다.</Text>
       </View>
     );
   }
@@ -271,6 +287,17 @@ export default function UserScreen() {
 }
 
 const styles = StyleSheet.create({
+  noOrdersContainer: {
+    flex: 1,
+    justifyContent: 'center', // 화면 중앙 배치
+    alignItems: 'center',    // 수평 중앙 정렬
+    backgroundColor: '#fff', // 배경색 흰색
+  },
+  noOrdersText: {
+    fontSize: 16,            // 글씨 크기
+    color: '#a9a9a9',        // 회색 글씨
+    textAlign: 'center',     // 텍스트 중앙 정렬
+  },
   container: {
     flex: 1,
     padding: 20,
