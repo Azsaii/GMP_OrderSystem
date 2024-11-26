@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   menuTitle: {
     fontWeight: 'bold',
-    fontSize: '20'
+    fontSize: 20,
   }
 });
 
