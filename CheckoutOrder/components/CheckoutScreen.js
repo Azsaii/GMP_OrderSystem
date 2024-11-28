@@ -31,7 +31,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   const {
     points: availablePoints,
-    unusedCoupons, // 수정된 부분: unusedCoupons 사용
+    unusedCoupons,
     paymentMethods,
     updatePoints,
     markCouponsAsUsed,
@@ -120,7 +120,6 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     let remainingSubtotal = subtotal;
 
     // 선택된 쿠폰의 상세 정보를 사용하여 할인 계산
-    // 수정된 부분: couponDetails를 사용합니다.
     // 고정 금액 할인 먼저 적용
     const fixedCoupons = couponDetails.filter(coupon => coupon.discountType === '원');
     fixedCoupons.forEach(coupon => {
@@ -371,7 +370,6 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     const appliedCoupons = [];
 
     // 선택된 쿠폰의 상세 정보를 사용하여 할인 계산
-    // 수정된 부분: couponDetails를 사용합니다.
     // 고정 금액 할인 먼저 적용
     const fixedCoupons = couponDetails.filter(coupon => coupon.discountType === '원');
     fixedCoupons.forEach(coupon => {
