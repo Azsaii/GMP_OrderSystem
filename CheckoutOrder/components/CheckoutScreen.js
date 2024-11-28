@@ -49,6 +49,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [selectedPaymentType, setSelectedPaymentType] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [unusedCouponDetails, setUnusedCouponDetails] = useState([]);
 
   // 장바구니 총 금액 계산
   const getSubtotal = () =>
@@ -83,6 +84,34 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
     fetchCoupons();
   }, [selectedCoupons]);
+
+  // unusedCoupons의 상세 정보를 Firestore에서 가져오는 함수
+  useEffect(() => {
+    const fetchUnusedCoupons = async () => {
+      if (unusedCoupons.length > 0) {
+        try {
+          const couponPromises = unusedCoupons.map(async (couponId) => {
+            const couponDocRef = doc(firestore, 'coupon', couponId);
+            const couponDoc = await getDoc(couponDocRef);
+            if (couponDoc.exists()) {
+              return { id: couponDoc.id, ...couponDoc.data() };
+            } else {
+              return null;
+            }
+          });
+  
+          const couponsData = await Promise.all(couponPromises);
+          setUnusedCouponDetails(couponsData.filter(coupon => coupon !== null));
+        } catch (error) {
+          console.error('Unused coupons fetch error:', error);
+        }
+      } else {
+        setUnusedCouponDetails([]);
+      }
+    };
+  
+    fetchUnusedCoupons();
+  }, [unusedCoupons]);
 
   // 쿠폰에 따른 할인 금액 계산
   const getTotalDiscount = () => {
@@ -162,7 +191,9 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   };
 
   // 사용 가능한 쿠폰이 있는지 여부를 확인
-  const hasAvailableCoupons = unusedCoupons.length > 0;
+  const hasAvailableCoupons = unusedCouponDetails.some(
+    (coupon) => getSubtotal() >= coupon.minOrderValue
+  );
 
   // 포인트 입력값을 초기화하는 함수
   const resetPoints = () => {
@@ -378,8 +409,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       {/* 주문 내역 표시 */}
       <View style={styles.sectionContainer}>
-        <View style={checkoutStyles.sectionHeader}>
-          <Text style={checkoutStyles.sectionTitle}> 주문 상품</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}> 주문 상품</Text>
         </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
@@ -400,8 +431,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 쿠폰 적용 */}
       <View style={styles.sectionContainer}>
-        <View style={checkoutStyles.sectionHeader}>
-          <Text style={checkoutStyles.sectionTitle}> 쿠폰 적용</Text>
+        <View style={styles.couponHeader}>
+          <Text style={styles.sectionTitle}> 쿠폰 적용</Text>
           <TouchableOpacity onPress={() => setCouponRegistrationModalVisible(true)}>
             <View style={styles.CouponButton}>
               <Text style={styles.CouponButtonText}>쿠폰 등록</Text>
@@ -445,7 +476,9 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 포인트 사용 */}
       <View style={styles.sectionContainer}>
-        <Text style={checkoutStyles.sectionTitle}> 포인트 사용</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}> 포인트 사용</Text>
+        </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
             <Text style={styles.label}>보유 포인트: {formatNumber(availablePoints)}점</Text>
@@ -478,7 +511,9 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 결제 수단 선택 */}
       <View style={styles.sectionContainer}>
-        <Text style={checkoutStyles.sectionTitle}> 결제 수단 선택</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}> 결제 수단 선택</Text>
+        </View>
         <Card style={[styles.card, styles.roundedCard]} mode="outlined">
           <Card.Content>
             {paymentMethods.length === 0 ? (
@@ -582,17 +617,5 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     </ScrollView>
   );
 };
-
-const checkoutStyles = StyleSheet.create({
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default CheckoutScreen;
