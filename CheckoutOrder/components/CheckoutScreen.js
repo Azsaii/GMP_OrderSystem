@@ -408,7 +408,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       {/* 주문 내역 표시 */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}> 주문 상품</Text>
+          <Text style={styles.sectionTitle}>  주문 상품</Text>
         </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
@@ -430,7 +430,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       {/* 쿠폰 적용 */}
       <View style={styles.sectionContainer}>
         <View style={styles.couponHeader}>
-          <Text style={styles.sectionTitle}> 쿠폰 적용</Text>
+          <Text style={styles.sectionTitle}>  쿠폰 적용</Text>
           <TouchableOpacity onPress={() => setCouponRegistrationModalVisible(true)}>
             <View style={styles.CouponButton}>
               <Text style={styles.CouponButtonText}>쿠폰 등록</Text>
@@ -475,7 +475,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       {/* 포인트 사용 */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}> 포인트 사용</Text>
+          <Text style={styles.sectionTitle}>  포인트 사용</Text>
         </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
@@ -510,7 +510,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
       {/* 결제 수단 선택 */}
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}> 결제 수단 선택</Text>
+          <Text style={styles.sectionTitle}>  결제 수단 선택</Text>
         </View>
         <Card style={[styles.card, styles.roundedCard]} mode="outlined">
           <Card.Content>
@@ -595,7 +595,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
         <CouponModal
           visible={couponModalVisible}
           onDismiss={() => setCouponModalVisible(false)}
-          unusedCoupons={unusedCoupons} // 수정된 부분: unusedCoupons 전달
+          unusedCoupons={unusedCoupons}
           getSubtotal={getSubtotal}
           setSelectedCoupons={setSelectedCoupons}
           getDiscountAmount={getTotalDiscount}
