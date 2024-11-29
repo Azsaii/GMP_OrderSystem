@@ -22,11 +22,13 @@ const CartItem = ({ item }) => {
         right={() => <Text style={styles.itemPrice}>{formatNumber(totalPrice)}원</Text>}
         left={() =>
           item.image ? (
-            <Avatar.Image size={40} source={{ uri: item.image }} />
+            <Avatar.Image size={40} source={{ uri: item.image }} style={{ backgroundColor: 'white' }} />
           ) : (
-            <Avatar.Icon size={40} icon="coffee" />
+            <View style={{ backgroundColor: 'white', borderRadius: 20, padding: 2 }}>
+              <Avatar.Icon size={40} icon="coffee" style={{ backgroundColor: 'white' }} />
+            </View>
           )
-        }
+        }        
         titleStyle={styles.titleStyle}
         descriptionStyle={styles.descriptionText}
       />
