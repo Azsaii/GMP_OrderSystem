@@ -37,6 +37,7 @@ const MenuTab = ({ navigation, category }) => {
 
     fetchMenuData();
   }, [category]);
+  
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -99,6 +100,7 @@ const MenuTab = ({ navigation, category }) => {
 
     fetchOrderDetails();
   }, [userId, startDate, endDate]);
+  
 
   const handleSearch = (text) => {
     setSearchTerm(text);
@@ -111,6 +113,42 @@ const MenuTab = ({ navigation, category }) => {
       setFilteredItems(menuItems);
     }
   };
+
+  const handleOrderNow = async (order) => {
+    console.log('Before finding menu item:', menuItems);
+  
+    // Firestore에서 beverage와 dessert 아이템을 가져옵니다.
+    const fetchMenuData = async () => {
+      const beverageItems = await getDocs(collection(firestore, 'beverage'));
+      const dessertItems = await getDocs(collection(firestore, 'dessert'));
+  
+      // 아이템들을 배열로 변환합니다.
+      const beverageData = beverageItems.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const dessertData = dessertItems.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+  
+      return [...beverageData, ...dessertData]; // 두 카테고리의 아이템을 합칩니다.
+    };
+  
+    // 메뉴 아이템을 가져옵니다.
+    const allMenuItems = await fetchMenuData();
+  
+    // 선택한 메뉴 이름으로 필터링합니다.
+    const menuItem = allMenuItems.filter(item =>
+      item.name.toLowerCase().includes(order.menuName.toLowerCase())
+    );
+  
+    console.log('Found Menu Item:', menuItem);
+  
+    if (menuItem.length > 0) {
+      const detailScreen = menuItem[0].category === 'coffee' ? 'DrinkDetail' : 'DessertDetail';
+      navigation.navigate(detailScreen, { item: menuItem[0] });
+    } else {
+      Alert.alert('오류', '해당 메뉴를 찾을 수 없습니다.');
+    }
+  };
+  
+
+
 
   const handleCartNavigation = () => {
     if (isLoggedIn) {
@@ -148,37 +186,15 @@ const MenuTab = ({ navigation, category }) => {
     setLoadingStates((prev) => ({ ...prev, [id]: false }));
   };
 
+
+  
+  
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-      {category === 'recommend' && userId && loadingOrders ? (
-        <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />
-      ) : (
-        category === 'recommend' && (
-          <View style={styles.recommendItemView}>
-            <Text> </Text>
-            {userId ? (
-              orderDetails.length > 0 ? (
-                orderDetails.map((order, orderIndex) => (
-                  <View key={orderIndex} style={styles.recommendItem}>
-                    <Text style={styles.menuNameText}>{order.menuName}</Text>
-                    {/* 옵션이 "사이즈 설정 X"를 포함하는지 확인 */}
-                    {order.options && order.options.includes("사이즈 설정 X") ? null : (
-                      <Text style={styles.menuOptionsText}>{order.options.join(', ')}</Text>
-                    )}
-                  </View>
-                ))
-              ) : (
-                <Text style={styles.noMenuText}>추천 메뉴가 없습니다.</Text>
-              )
-            ) : (
-              <Text style={styles.noMenuText}>로그인 후 추천 메뉴를 볼 수 있습니다.</Text>
-            )}
-          </View>
-        )
-      )}
 
       {(category === 'dessert' || category === 'beverage') && (
         <View style={styles.searchContainer}>
+
           <TextInput
             style={styles.searchInput}
             placeholder="메뉴 검색..."
@@ -221,6 +237,38 @@ const MenuTab = ({ navigation, category }) => {
             </TouchableOpacity>
           ))}
         </View>
+
+        {category === 'recommend' && userId && loadingOrders ? (
+        <ActivityIndicator size="large" color="#0000ff" style={{ marginTop: 20 }} />
+          ) : (
+            category === 'recommend' && (
+              <View style={styles.recommendItemView}>
+                {userId ? (
+                  orderDetails.length > 0 ? (
+                    orderDetails.map((order, orderIndex) => (
+                      <View key={orderIndex} style={styles.recommendItem}>
+                        <Text style={styles.menuNameText}>{order.menuName}</Text>
+                        {/* 옵션이 "사이즈 설정 X"를 포함하는지 확인 */}
+                        {order.options && order.options.includes("사이즈 설정 X") ? null : (
+                          <Text style={styles.menuOptionsText}>{order.options.join(', ')}</Text>
+                        )}
+                        <TouchableOpacity 
+                          style={styles.orderNowButton}
+                          onPress={() => handleOrderNow(order)}
+                        >
+                          <Text style={styles.orderNowButtonText}>주문하러 가기</Text>
+                        </TouchableOpacity>
+                      </View>
+                    ))
+                  ) : (
+                    <Text style={styles.noMenuText}>추천 메뉴가 없습니다.</Text>
+                  )
+                ) : (
+                  <Text style={styles.noMenuText}>로그인 후 추천 메뉴를 볼 수 있습니다.</Text>
+                )}
+              </View>
+            )
+          )}
       </ScrollView>
       <View style={styles.RowContainer}>
         <TouchableOpacity style={styles.orderButton} onPress={handleCartNavigation}>
@@ -339,9 +387,22 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchIcon: {
-    width: 24, // 원하는 너비
-    height: 24, // 원하는 높이
-  }
+    width: 24,
+    height: 24,
+  },
+  orderNowButton: {
+    backgroundColor: '#000000',
+    width: 100,
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  orderNowButtonText: {
+    color: '#FFFFFF',
+    textAlign: 'center',
+    fontWeight: 'bold',
+  },
 });
 
 export default MenuTab;

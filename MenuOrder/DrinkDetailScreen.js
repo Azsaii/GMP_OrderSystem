@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     margin: 10,
   },
   quantityButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#000000',
     padding: 10,
     borderRadius: 5,
     marginHorizontal: 10,
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   orderButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#000000',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
