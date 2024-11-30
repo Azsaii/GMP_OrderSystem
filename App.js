@@ -32,7 +32,7 @@ const AppNavigator = () => {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // LogBox.ignoreAllLogs(); // 모든 경고, 에러 로그박스 제거
+    LogBox.ignoreAllLogs(); // 모든 경고, 에러 로그박스 제거
   }, []);
 
   const addToCart = (item) => {
