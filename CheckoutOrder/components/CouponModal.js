@@ -171,7 +171,7 @@ const CouponModal = ({
             data={availableCoupons}
             keyExtractor={(item) => `${item.name}_${item.discountType}`} // 고유 키 설정
             renderItem={renderCouponItem}
-            style={{ maxHeight: 400 }} // 스크롤 가능하도록 최대 높이 설정
+            style={{ maxHeight: 400 }}
           />
         )}
       </Dialog.Content>

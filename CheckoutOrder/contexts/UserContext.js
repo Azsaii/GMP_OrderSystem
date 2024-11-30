@@ -169,8 +169,6 @@ const unregisterPaymentMethod = async (methodId) => {
   }
 };
 
-  
-
   return (
     <UserContext.Provider
       value={{

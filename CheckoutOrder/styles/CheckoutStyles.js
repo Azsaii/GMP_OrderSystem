@@ -160,14 +160,6 @@ const CheckoutStyles = StyleSheet.create({
     backgroundColor: '#aaa',
     borderRadius: 10,
   },
-  sectionTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-    paddingBottom: 5,
-  },
   closeIconButton: {
     position: 'absolute',
     top: 0,
@@ -190,6 +182,16 @@ const CheckoutStyles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    paddingVertical: 10,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  couponHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   deleteButton: {
     position: 'absolute',
@@ -206,6 +208,7 @@ const CheckoutStyles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 20,
   },
+
 });
 
 export default CheckoutStyles;

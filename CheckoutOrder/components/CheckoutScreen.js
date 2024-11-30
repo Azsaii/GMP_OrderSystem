@@ -31,7 +31,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
   const {
     points: availablePoints,
-    unusedCoupons, // 수정된 부분: unusedCoupons 사용
+    unusedCoupons,
     paymentMethods,
     updatePoints,
     markCouponsAsUsed,
@@ -49,6 +49,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(null);
   const [selectedPaymentType, setSelectedPaymentType] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [unusedCouponDetails, setUnusedCouponDetails] = useState([]);
 
   // 장바구니 총 금액 계산
   const getSubtotal = () =>
@@ -84,20 +85,53 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     fetchCoupons();
   }, [selectedCoupons]);
 
+  // unusedCoupons의 상세 정보를 Firestore에서 가져오는 함수
+  useEffect(() => {
+    const fetchUnusedCoupons = async () => {
+      if (unusedCoupons.length > 0) {
+        try {
+          const couponPromises = unusedCoupons.map(async (couponId) => {
+            const couponDocRef = doc(firestore, 'coupon', couponId);
+            const couponDoc = await getDoc(couponDocRef);
+            if (couponDoc.exists()) {
+              return { id: couponDoc.id, ...couponDoc.data() };
+            } else {
+              return null;
+            }
+          });
+  
+          const couponsData = await Promise.all(couponPromises);
+          setUnusedCouponDetails(couponsData.filter(coupon => coupon !== null));
+        } catch (error) {
+          console.error('Unused coupons fetch error:', error);
+        }
+      } else {
+        setUnusedCouponDetails([]);
+      }
+    };
+  
+    fetchUnusedCoupons();
+  }, [unusedCoupons]);
+
   // 쿠폰에 따른 할인 금액 계산
+
   const getTotalDiscount = () => {
     let totalDiscount = 0;
     const subtotal = getSubtotal();
     let remainingSubtotal = subtotal;
 
-    // 선택된 쿠폰의 상세 정보를 사용하여 할인 계산
-    // 수정된 부분: couponDetails를 사용합니다.
     // 고정 금액 할인 먼저 적용
     const fixedCoupons = couponDetails.filter(coupon => coupon.discountType === '원');
     fixedCoupons.forEach(coupon => {
       if (remainingSubtotal < coupon.minOrderValue) return;
+      const discountValue = Number(coupon.discountValue);
+      if (isNaN(discountValue) || discountValue <= 0) {
+        console.warn(`유효하지 않은 discountValue for coupon ${coupon.id}: ${coupon.discountValue}`);
+        return;
+      }
 
-      const discount = Math.min(coupon.discountValue, coupon.maxDiscountValue || coupon.discountValue);
+      // 고정 금액 할인에서는 maxDiscountValue를 무시하고 discountValue만 사용
+      const discount = discountValue;
       totalDiscount += discount;
       remainingSubtotal -= discount;
     });
@@ -107,8 +141,22 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     percentCoupons.forEach(coupon => {
       if (remainingSubtotal < coupon.minOrderValue) return;
 
-      const calculatedDiscount = Math.floor((remainingSubtotal * coupon.discountValue) / 100);
-      const discount = Math.min(calculatedDiscount, coupon.maxDiscountValue || calculatedDiscount);
+      const discountValue = Number(coupon.discountValue);
+      if (isNaN(discountValue) || discountValue <= 0) {
+        console.warn(`유효하지 않은 discountValue for coupon ${coupon.id}: ${coupon.discountValue}`);
+        return;
+      }
+
+      const calculatedDiscount = Math.floor((remainingSubtotal * discountValue) / 100);
+      let discount = calculatedDiscount;
+
+      if (coupon.maxDiscountValue && Number(coupon.maxDiscountValue) > 0) {
+        const maxDiscountValue = Number(coupon.maxDiscountValue);
+        if (!isNaN(maxDiscountValue)) {
+          discount = Math.min(calculatedDiscount, maxDiscountValue);
+        }
+      }
+
       totalDiscount += discount;
       remainingSubtotal -= discount;
     });
@@ -121,11 +169,13 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     return totalDiscount;
   };
 
+
   // 최종 결제 금액 계산
   const getTotal = () => {
     const subtotal = getSubtotal();
     const discount = getTotalDiscount();
     const total = subtotal - discount - usedPoints;
+    console.log(`Subtotal: ${subtotal}, Discount: ${discount}, Used Points: ${usedPoints}, Total: ${total}`);
     return total > 0 ? total : 0;
   };
 
@@ -162,7 +212,9 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
   };
 
   // 사용 가능한 쿠폰이 있는지 여부를 확인
-  const hasAvailableCoupons = unusedCoupons.length > 0;
+  const hasAvailableCoupons = unusedCouponDetails.some(
+    (coupon) => getSubtotal() >= coupon.minOrderValue
+  );
 
   // 포인트 입력값을 초기화하는 함수
   const resetPoints = () => {
@@ -340,12 +392,13 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     const appliedCoupons = [];
 
     // 선택된 쿠폰의 상세 정보를 사용하여 할인 계산
-    // 수정된 부분: couponDetails를 사용합니다.
     // 고정 금액 할인 먼저 적용
     const fixedCoupons = couponDetails.filter(coupon => coupon.discountType === '원');
     fixedCoupons.forEach(coupon => {
       if (remainingSubtotal >= coupon.minOrderValue) {
-        const discount = Math.min(coupon.discountValue, coupon.maxDiscountValue || coupon.discountValue);
+        const discountValue = Number(coupon.discountValue);
+        const maxDiscountValue = coupon.maxDiscountValue !== undefined ? Number(coupon.maxDiscountValue) : discountValue;
+        const discount = Math.min(discountValue, maxDiscountValue);
         appliedCoupons.push({ coupon, discount });
         totalDiscount += discount;
         remainingSubtotal -= discount;
@@ -356,8 +409,10 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     const percentCoupons = couponDetails.filter(coupon => coupon.discountType === '%');
     percentCoupons.forEach(coupon => {
       if (remainingSubtotal >= coupon.minOrderValue) {
-        const calculatedDiscount = Math.floor((remainingSubtotal * coupon.discountValue) / 100);
-        const discount = Math.min(calculatedDiscount, coupon.maxDiscountValue || calculatedDiscount);
+        const discountValue = Number(coupon.discountValue);
+        const maxDiscountValue = coupon.maxDiscountValue !== undefined ? Number(coupon.maxDiscountValue) : calculatedDiscount;
+        const calculatedDiscount = Math.floor((remainingSubtotal * discountValue) / 100);
+        const discount = Math.min(calculatedDiscount, maxDiscountValue);
         appliedCoupons.push({ coupon, discount });
         totalDiscount += discount;
         remainingSubtotal -= discount;
@@ -378,8 +433,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 20 }}>
       {/* 주문 내역 표시 */}
       <View style={styles.sectionContainer}>
-        <View style={checkoutStyles.sectionHeader}>
-          <Text style={checkoutStyles.sectionTitle}> 주문 상품</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>  주문 상품</Text>
         </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
@@ -400,8 +455,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 쿠폰 적용 */}
       <View style={styles.sectionContainer}>
-        <View style={checkoutStyles.sectionHeader}>
-          <Text style={checkoutStyles.sectionTitle}> 쿠폰 적용</Text>
+        <View style={styles.couponHeader}>
+          <Text style={styles.sectionTitle}>  쿠폰 적용</Text>
           <TouchableOpacity onPress={() => setCouponRegistrationModalVisible(true)}>
             <View style={styles.CouponButton}>
               <Text style={styles.CouponButtonText}>쿠폰 등록</Text>
@@ -445,7 +500,9 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 포인트 사용 */}
       <View style={styles.sectionContainer}>
-        <Text style={checkoutStyles.sectionTitle}> 포인트 사용</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>  포인트 사용</Text>
+        </View>
         <Card style={[styles.card, styles.roundedCard]}>
           <Card.Content>
             <Text style={styles.label}>보유 포인트: {formatNumber(availablePoints)}점</Text>
@@ -478,7 +535,9 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
 
       {/* 결제 수단 선택 */}
       <View style={styles.sectionContainer}>
-        <Text style={checkoutStyles.sectionTitle}> 결제 수단 선택</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>  결제 수단 선택</Text>
+        </View>
         <Card style={[styles.card, styles.roundedCard]} mode="outlined">
           <Card.Content>
             {paymentMethods.length === 0 ? (
@@ -562,7 +621,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
         <CouponModal
           visible={couponModalVisible}
           onDismiss={() => setCouponModalVisible(false)}
-          unusedCoupons={unusedCoupons} // 수정된 부분: unusedCoupons 전달
+          unusedCoupons={unusedCoupons}
           getSubtotal={getSubtotal}
           setSelectedCoupons={setSelectedCoupons}
           getDiscountAmount={getTotalDiscount}
@@ -582,17 +641,5 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
     </ScrollView>
   );
 };
-
-const checkoutStyles = StyleSheet.create({
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-});
 
 export default CheckoutScreen;
