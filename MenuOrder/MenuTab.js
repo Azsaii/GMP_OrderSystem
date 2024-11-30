@@ -258,7 +258,7 @@ const MenuTab = ({ navigation, category }) => {
                         >
                           <Text style={styles.orderNowButtonText}>주문하러 가기</Text>
                         </TouchableOpacity>
-                        <Text>___________________________________________</Text>
+                        <Text>____________________________</Text>
                       </View>
                     ))
                   ) : (
