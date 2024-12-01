@@ -55,91 +55,123 @@ export default function UserScreen() {
     return () => unsubscribe();
   }, []);
 
+  
+  
+
   useEffect(() => {
     if (!userId) return;
-    setLoading(true);
-
-    const formattedStartDate = format(startDate, 'yyMMdd');
-    const formattedEndDate = format(endDate, 'yyMMdd');
-    let unsubscribeList = [];
-
-    for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
-      const dateString = format(d, 'yyMMdd');
-      const ordersCollectionRef = collection(firestore, 'orders', dateString, 'orders');
-      const q = query(ordersCollectionRef, where('customerId', '==', userId));
-
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        const updatedOrders = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        setOrderDetails((prevOrders) => {
-          const updatedOrderMap = new Map(prevOrders.map(order => [order.id, order]));
-          updatedOrders.forEach(order => {
-            updatedOrderMap.set(order.id, order);
-
-            sendNotification(order);
+  
+    const fetchFilteredOrders = async () => {
+      setLoading(true); // 로딩 상태 활성화
+      setOrderDetails([]); // 이전 데이터 초기화
+  
+      const unsubscribeList = [];
+      try {
+        // 날짜 범위 순회
+        for (let d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+          const dateString = format(d, 'yyMMdd');
+          const ordersCollectionRef = collection(firestore, 'orders', dateString, 'orders');
+          const q = query(ordersCollectionRef, where('customerId', '==', userId));
+  
+          // 날짜별로 구독 생성
+          const unsubscribe = onSnapshot(q, (snapshot) => {
+            const updatedOrders = snapshot.docs.map((doc) => ({
+              id: doc.id,
+              ...doc.data(),
+            }));
+  
+            // 상태 업데이트 (이전 데이터와 합쳐 중복 제거 및 정렬)
+            setOrderDetails((prevOrders) => {
+              const updatedOrderMap = new Map(prevOrders.map((order) => [order.id, order]));
+              updatedOrders.forEach((order) => {
+                updatedOrderMap.set(order.id, order);
+                sendNotification(order); // 여기서 호출
+              });
+              return Array.from(updatedOrderMap.values()).sort(
+                (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+              );
+            });
           });
-          return Array.from(updatedOrderMap.values()).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        });
-      });
-
-      unsubscribeList.push(unsubscribe);
-    }
-
-    setLoading(false);
-
-    return () => unsubscribeList.forEach(unsub => unsub());
-  }, [userId, startDate, endDate]);
+  
+          unsubscribeList.push(unsubscribe);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false); // 로딩 상태 비활성화
+      }
+  
+      // 컴포넌트가 언마운트되거나 의존성이 변경될 때 구독 해제
+      return () => unsubscribeList.forEach((unsub) => unsub());
+    };
+  
+    fetchFilteredOrders(); // 데이터 가져오기
+  }, [userId, startDate, endDate]); // 의존성 배열에 userId, startDate, endDate 추가
+  
+  
 
   const savePushTokenToFirestore = async (userId, token) => {
     try {
       const userRef = doc(firestore, 'users', userId);
       await setDoc(userRef, { expoPushToken: token }, { merge: true });
+      console.log('푸시 토큰 저장 성공:', token);
     } catch (error) {
       console.error('푸시 토큰 저장 실패:', error);
     }
   };
-
+  
+  // 푸시 알림 권한 요청 및 토큰 가져오기
   const registerForPushNotificationsAsync = async () => {
-    
-
+    // if (!Device.isDevice) {
+    //   console.warn('푸시 알림은 실제 기기에서만 작동합니다.');
+    //   return null;
+    // }
+  
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
-
+  
     if (existingStatus !== 'granted') {
       const { status } = await Notifications.requestPermissionsAsync();
       finalStatus = status;
     }
-
+  
     if (finalStatus !== 'granted') {
       Alert.alert('권한 거부됨', '푸시 알림 권한이 필요합니다.');
       return null;
     }
-
-    const token = (await Notifications.getExpoPushTokenAsync()).data;
-    return token;
-  };
-
   
-
+    try {
+      const token = (await Notifications.getExpoPushTokenAsync()).data;
+      console.log('푸시 알림 토큰:', token);
+      return token;
+    } catch (error) {
+      console.error('푸시 알림 토큰 생성 실패:', error);
+      return null;
+    }
+  };
+  
+  // 푸시 알림 보내기
   const sendNotification = async (order) => {
     const orderStatus = getOrderStatus(order);
-    
-
+    console.log('주문 상태 확인:', orderStatus);
+  
     if (orderStatus === '준비 완료') {
-      await Notifications.scheduleNotificationAsync({
-        content: {
-          title: '준비 완료 알림',
-          body: `[주문번호 ${order.id}]주문하신 메뉴가 나왔습니다!`,
-          sound: true,
-        },
-        trigger: null,
-      });
-    
+      try {
+        const notificationId = await Notifications.scheduleNotificationAsync({
+          content: {
+            title: '준비 완료 알림',
+            body: `[주문번호 ${order.id}] 주문하신 메뉴가 준비되었습니다!`,
+            sound: true,
+          },
+          trigger: null,
+        });
+        console.log('푸시 알림 전송 성공:', notificationId);
+      } catch (error) {
+        console.error('푸시 알림 전송 실패:', error);
+      }
+    } else {
+      console.log('알림 전송 조건 불일치: 상태가 "준비 완료"가 아닙니다.');
     }
-   
   };
 
   const getOrderStatus = (order) => {
@@ -206,9 +238,37 @@ export default function UserScreen() {
     );
   }
 
+  
   if (!orderDetails.length) {
+    // 주문 데이터가 없을 경우
     return (
-      <View style={styles.noOrdersContainer}>
+      <View style={styles.container}>
+        
+        <View style={styles.datePickerContainer}>
+          <Button title="시작 날짜 선택" onPress={() => setShowStartDatePicker(true)} />
+          {showStartDatePicker && (
+            <DateTimePicker
+              value={startDate}
+              mode="date"
+              display="default"
+              onChange={handleStartDateChange}
+            />
+          )}
+
+          <Button title="종료 날짜 선택" onPress={() => setShowEndDatePicker(true)} />
+          {showEndDatePicker && (
+            <DateTimePicker
+              value={endDate}
+              mode="date"
+              display="default"
+              onChange={handleEndDateChange}
+            />
+          )}
+
+          <Text style={styles.selectedPeriod}>
+            선택된 기간: {format(startDate, 'yyyy-MM-dd')} ~ {format(endDate, 'yyyy-MM-dd')}
+          </Text>
+        </View>
         <Text style={styles.noOrdersText}>일치하는 주문이 없습니다.</Text>
       </View>
     );
@@ -287,12 +347,6 @@ export default function UserScreen() {
 }
 
 const styles = StyleSheet.create({
-  noOrdersContainer: {
-    flex: 1,
-    justifyContent: 'center', // 화면 중앙 배치
-    alignItems: 'center',    // 수평 중앙 정렬
-    backgroundColor: '#fff', // 배경색 흰색
-  },
   noOrdersText: {
     fontSize: 16,            // 글씨 크기
     color: '#a9a9a9',        // 회색 글씨
