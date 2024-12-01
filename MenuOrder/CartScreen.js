@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     margin: 20,
   },
   orderButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#000000',
     padding: 15,
     borderRadius: 5,
     alignItems: 'center',
