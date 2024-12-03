@@ -547,7 +547,7 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                 data={paymentMethods}
                 keyExtractor={(item, index) => `${item.id}_${index}`} // 고유 키 수정
                 numColumns={2}
-                columnWrapperStyle={{ justifyContent: 'space-between' }}
+                columnWrapperStyle={{ justifyContent: 'space-around' }}
                 renderItem={({ item }) => (
                   <View style={{ position: 'relative', marginBottom: 10 }}>
                     <TouchableOpacity onPress={() => handlePaymentMethodSelect(item)}>
@@ -555,7 +555,8 @@ const CheckoutScreen = ({ route, navigation, onClearCart }) => {
                         style={[
                           styles.paymentMethodItem,
                           selectedPaymentMethod?.id === item.id && styles.selectedPaymentMethodItem,
-                          { width: 160, height: 90 },
+                          //{ width: 160, height: 90 },
+                          { aspectRatio: 1.6 },
                         ]}
                       >
                         <Text style={styles.paymentMethodText}>{item.name}</Text>

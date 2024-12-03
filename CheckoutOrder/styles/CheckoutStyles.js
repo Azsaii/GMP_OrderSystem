@@ -74,9 +74,10 @@ const CheckoutStyles = StyleSheet.create({
   paymentMethodItem: {
     flex: 1,
     margin: 5,
-    padding: 20,
+    padding: 30,
     backgroundColor: '#d0d0d0',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 10,
   },
   selectedPaymentMethodItem: {
