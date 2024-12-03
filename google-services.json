@@ -1,0 +1,49 @@
+{
+  "project_info": {
+    "project_number": "738826135164",
+    "firebase_url": "https://mobile8-b37a5-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "mobile8-b37a5",
+    "storage_bucket": "mobile8-b37a5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738826135164:android:a084cd2afc843655fa4bf9",
+        "android_client_info": {
+          "package_name": "com.gmp.cafe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIkWmRPM6mvavB8YKVW4CwYxY_s7W59Zc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:738826135164:android:04272539f5425396fa4bf9",
+        "android_client_info": {
+          "package_name": "dev.expo.GMP_ORDERSYSTEM"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBIkWmRPM6mvavB8YKVW4CwYxY_s7W59Zc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
