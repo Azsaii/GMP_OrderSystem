@@ -6,7 +6,7 @@
 - Azsaii (김인우)
 - itwins15261 (강재호)
 - 3DUCK (김건우)
-- flsbnus (조명연
+- flsbnus (조명연)
 
 #### 플랫폼
 - React Native Expo
